@@ -1,0 +1,7 @@
+{
+  "prefix": "adtViewer",
+  "paths": {
+    "adtViewer": "."
+  },
+  "translations": ["translations/ja-JP.json"]
+}

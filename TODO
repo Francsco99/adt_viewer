@@ -1,0 +1,33 @@
+-Selezione multipla nodi
+-Stop del ciclo automatico degli stati dell'albero 
+dopo che si e' arrivati all'ultimo stato
+-Visualizzazioni:
+    -Due alberi collegati dalla freccia che indica l'azione che
+    fa cambiare di stato
+    -Tutti piccoli alberi collegati da frecce che indicano le azioni
+    che fanno cambiare lo stato
+-Grafico del costo cumulativo step by step:
+  -y costo, x indice dello step
+  -allo step 0 vedere sul grafico, sul trasparente,
+  una proiezione di quello che sara' il costo
+  -step by step si rende 'non trasparente' la parte a sinistra
+  rispetto allo step 
+-Integrare visualizzazione azioni disponibili per nodo selezionato
+
+-Visualizzazione albero:
+  -hover per mostrare etichetta del nodo
+  -heatmap sui nodi o sulle azioni piu costose/critiche
+-Notifiche:
+-Grafico a radar (quello che dicevamo di pes):
+  -assi rappresentano le metriche (costo, tempo,...)
+  -ogni nodo e' un poligono nel grafico
+  -riusciamo a confrontare direttamente nodi critici o scenari alternativi
+-Diagramma Sankey:
+  -rappresenta i flussi di azioni
+  -mostra come le azioni si propagano attraverso nodi o stati
+  -nodi rappresentano statio azioni, i collegamnti mostrano il flusso di
+  risorse, costi o impatti tra di essi
+  -lo spessore dlele linee rappresenta la quantita' di risorse
+  o costi trasferiti
+  -utile per capire come le azioni dell'attaccante influenzxano il difensore e 
+  viceversa

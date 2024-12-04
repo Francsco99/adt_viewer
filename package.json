@@ -1,0 +1,22 @@
+{
+  "name": "adtViewer",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn plugin-helpers build",
+    "plugin-helpers": "../../scripts/use_node ../../scripts/plugin_helpers",
+    "osd": "../../scripts/use_node ../../scripts/osd"
+  },
+  "dependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/d3-transition": "^3.0.9",
+    "@types/d3-zoom": "^3.0.8",
+    "chart.js": "^4.4.7",
+    "d3": "^7.9.0",
+    "d3-transition": "^3.0.1",
+    "react-chartjs-2": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/d3-hierarchy": "^3.1.7"
+  }
+}

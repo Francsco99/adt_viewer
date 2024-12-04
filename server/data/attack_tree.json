@@ -1,0 +1,116 @@
+{
+    "tree": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Data Exfiltration"
+            },
+            {
+                "id": 1,
+                "label": "Access to MySQL"
+            },
+            {
+                "id": 2,
+                "label": "Access to Execute Arbitrary Code"
+            },
+            {
+                "id": 3,
+                "label": "Access to Sensitive Files"
+            },
+            {
+                "id": 4,
+                "label": "Unencrypted Files"
+            },
+            {
+                "id": 5,
+                "label": "Web Recon Successful"
+            },
+            {
+                "id": 6,
+                "label": "SOCKS5 Proxy Active"
+            },
+            {
+                "id": 7,
+                "label": "Misconfigured Apache"
+            },
+            {
+                "id": 8,
+                "label": "Access to Reverse Shell"
+            },
+            {
+                "id": 9,
+                "label": "Webserver Publicly Exposed"
+            },
+            {
+                "id": 10,
+                "label": "Web Recon Successful"
+            },
+            {
+                "id": 11,
+                "label": "CGI Scripts Enabled"
+            },
+            {
+                "id": 12,
+                "label": "Vulnerable Apache Version"
+            },
+            {
+                "id": 13,
+                "label": "Webserver Publicly Exposed"
+            }
+        ],
+        "edges": [
+            {
+                "id_source": 0,
+                "id_target": 1
+            },
+            {
+                "id_source": 0,
+                "id_target": 2
+            },
+            {
+                "id_source": 1,
+                "id_target": 3
+            },
+            {
+                "id_source": 1,
+                "id_target": 4
+            },
+            {
+                "id_source": 2,
+                "id_target": 5
+            },
+            {
+                "id_source": 2,
+                "id_target": 6
+            },
+            {
+                "id_source": 3,
+                "id_target": 7
+            },
+            {
+                "id_source": 3,
+                "id_target": 8
+            },
+            {
+                "id_source": 5,
+                "id_target": 9
+            },
+            {
+                "id_source": 8,
+                "id_target": 10
+            },
+            {
+                "id_source": 8,
+                "id_target": 11
+            },
+            {
+                "id_source": 8,
+                "id_target": 12
+            },
+            {
+                "id_source": 10,
+                "id_target": 13
+            }
+        ]
+    }
+}
