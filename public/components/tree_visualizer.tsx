@@ -43,7 +43,6 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       k: initialScale,
     };
   });
-  
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -60,26 +59,25 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
 
   useEffect(() => {
     if (!data || !svgRef.current || !gRef.current || !dimensions) return;
-  
+
     const { nodes, edges } = data;
     const hierarchyData = buildHierarchy(nodes, edges);
-  
+
     if (!hierarchyData) {
       console.error("Root node could not be determined.");
       return;
     }
-  
-  
+
     const svg = select(svgRef.current);
     const g = select(gRef.current);
-  
+
     // Rimuovi tutti gli elementi esistenti
     g.selectAll("*").remove();
-  
+
     const root = hierarchy(hierarchyData);
     const treeLayout = tree<TreeNode>().nodeSize([100, 100]);
     treeLayout(root);
-  
+
     g.append("g")
       .selectAll("line")
       .data(root.links())
@@ -91,7 +89,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("y1", (d) => d.source.y ?? 0)
       .attr("x2", (d) => d.target.x ?? 0)
       .attr("y2", (d) => d.target.y ?? 0);
-  
+
     const nodesGroup = g
       .append("g")
       .selectAll("g")
@@ -102,7 +100,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .on("click", (event, d) => {
         setSelectedNode(d);
       });
-  
+
     nodesGroup
       .append("ellipse")
       .attr("rx", 40)
@@ -114,7 +112,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("stroke-width", (d) =>
         selectedNode && selectedNode.data.id === d.data.id ? 5 : 3
       );
-  
+
     nodesGroup
       .append("text")
       .attr("text-anchor", "middle")
@@ -125,7 +123,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       )
       .attr("fill", "black")
       .text((d) => d.data.id);
-  
+
     if (!zoomBehavior.current) {
       zoomBehavior.current = zoom<SVGSVGElement, unknown>().on(
         "zoom",
@@ -134,7 +132,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
             "transform",
             `translate(${event.transform.x},${event.transform.y}) scale(${event.transform.k})`
           );
-  
+
           // Salva la trasformazione attuale nello stato
           setZoomTransform({
             x: event.transform.x,
@@ -144,9 +142,9 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
         }
       );
     }
-  
+
     svg.call(zoomBehavior.current);
-  
+
     // Applica la trasformazione salvata
     svg.call(
       zoomBehavior.current.transform,
@@ -154,9 +152,15 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
         .translate(zoomTransform.x, zoomTransform.y)
         .scale(zoomTransform.k)
     );
-  }, [data, activeNodes, selectedNode, dimensions, zoomTransform.x, zoomTransform.y, zoomTransform.k]);
-  
-  
+  }, [
+    data,
+    activeNodes,
+    selectedNode,
+    dimensions,
+    zoomTransform.x,
+    zoomTransform.y,
+    zoomTransform.k,
+  ]);
 
   return (
     <div
@@ -168,13 +172,14 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       }}
     >
       {dimensions && (
-        <svg 
-          ref={svgRef} 
-          style={{ 
-            width: "100%", 
+        <svg
+          ref={svgRef}
+          style={{
+            width: "100%",
             height: "100%",
-            minHeight: "400px", 
-            }}>
+            minHeight: "400px",
+          }}
+        >
           <g ref={gRef} />
         </svg>
       )}

@@ -28,10 +28,7 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
     <div>
       {/* Visualizzatore dell'albero */}
       {treeData && (
-        <TreeVisualizer
-          data={treeData}
-          activeNodes={currentActiveNodes}
-        />
+        <TreeVisualizer data={treeData} activeNodes={currentActiveNodes} />
       )}
     </div>
   );

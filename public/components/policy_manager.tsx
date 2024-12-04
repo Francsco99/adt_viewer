@@ -64,7 +64,9 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({
                         content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
                       >
                         <EuiBadge
-                          color={action?.agent === "attacker" ? "danger" : "success"}
+                          color={
+                            action?.agent === "attacker" ? "danger" : "success"
+                          }
                           style={{ cursor: "pointer" }}
                         >
                           {action?.action || "Unknown Action"}

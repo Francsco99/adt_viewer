@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface TreeContextType {
   selectedNode: any;
@@ -9,7 +9,9 @@ interface TreeContextType {
 
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
 
-export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedState, setSelectedState] = useState(0);
 
@@ -25,7 +27,7 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 export const useTreeContext = (): TreeContextType => {
   const context = useContext(TreeContext);
   if (!context) {
-    throw new Error('useTreeContext must be used within a TreeContextProvider');
+    throw new Error("useTreeContext must be used within a TreeContextProvider");
   }
   return context;
 };

@@ -35,11 +35,16 @@ interface ActionsManagerProps {
   actions: Action[];
 }
 
-export const ActionsManager: React.FC<ActionsManagerProps> = ({ states, actions }) => {
+export const ActionsManager: React.FC<ActionsManagerProps> = ({
+  states,
+  actions,
+}) => {
   const { selectedNode, selectedState } = useTreeContext();
   const [showAllActions, setShowAllActions] = useState(false);
   const [nodeActions, setNodeActions] = useState<Action[]>([]);
-  const [stateTransitionActions, setStateTransitionActions] = useState<Action[]>([]);
+  const [stateTransitionActions, setStateTransitionActions] = useState<
+    Action[]
+  >([]);
   const [nextState, setNextState] = useState<number | null>(null);
 
   // Stato per paginazione
@@ -67,8 +72,12 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({ states, actions 
 
   useEffect(() => {
     if (selectedState !== undefined) {
-      const currentState = states.find((state) => state.state_id === selectedState);
-      const nextStateObj = states.find((state) => state.state_id === selectedState + 1);
+      const currentState = states.find(
+        (state) => state.state_id === selectedState
+      );
+      const nextStateObj = states.find(
+        (state) => state.state_id === selectedState + 1
+      );
 
       if (currentState && nextStateObj) {
         setNextState(nextStateObj.state_id);
@@ -195,10 +204,12 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({ states, actions 
       <EuiSpacer size="m" />
       {/* Tabella delle azioni disponibili per il nodo selezionato */}
       <EuiText>
-  <h5>
-    {selectedNode ? `Actions available for Node ${selectedNode.data.id}` : "No Node Selected"}
-  </h5>
-</EuiText>
+        <h5>
+          {selectedNode
+            ? `Actions available for Node ${selectedNode.data.id}`
+            : "No Node Selected"}
+        </h5>
+      </EuiText>
 
       <EuiBasicTable<TableRow>
         items={visibleNodeActions}
@@ -212,7 +223,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({ states, actions 
       {/* Tabella delle azioni di transizione */}
       <EuiText>
         <h5>
-          State {selectedState} {nextState !== null ? `-> State ${nextState}` : ""}
+          State {selectedState}{" "}
+          {nextState !== null ? `-> State ${nextState}` : ""}
         </h5>
       </EuiText>
       <EuiBasicTable<TableRow>

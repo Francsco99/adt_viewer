@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  EuiBasicTable,
-  EuiSwitch,
-  EuiSpacer,
-  EuiBadge,
-} from "@elastic/eui";
+import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
 import { CoreStart } from "../../../../src/core/public";
 
@@ -37,9 +32,7 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
       .then((res) => {
         setAllNodes(res.tree?.nodes || []);
       })
-      .catch(() =>
-        notifications.toasts.addDanger("Failed to load tree data")
-      )
+      .catch(() => notifications.toasts.addDanger("Failed to load tree data"))
       .finally(() => setLoading(false));
   }, [http, notifications]);
 
