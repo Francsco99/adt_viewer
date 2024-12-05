@@ -4,6 +4,7 @@ import {
   EuiBadge,
   EuiButtonIcon,
   EuiSpacer,
+  EuiToolTip,
 } from "@elastic/eui";
 
 interface Policy {
@@ -107,8 +108,12 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({ policies, actions })
       name: "Manage",
       render: () => (
         <div style={{ display: "flex", gap: "8px" }}>
-          <EuiButtonIcon iconType="pencil" aria-label="Edit Action" />
-          <EuiButtonIcon iconType="trash" aria-label="Delete Action" />
+          <EuiToolTip position="bottom" content={"Edit action"}>
+            <EuiButtonIcon iconType="pencil" color="primary" aria-label="Edit Action" />
+          </EuiToolTip>
+          <EuiToolTip position="bottom" content={"Delete action"}>
+          <EuiButtonIcon iconType="trash" color="danger" aria-label="Delete Action" />
+          </EuiToolTip>
         </div>
       ),
     },

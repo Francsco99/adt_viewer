@@ -146,10 +146,10 @@ export const AdtViewerApp = ({
               {/* Terza colonna: Cost Chart */}
               <EuiFlexItem grow={1}>
                 <EuiPanel>
-                  <EuiTitle size="m">
-                    <h2>Cost Chart</h2>
+                <EuiTitle size="m">
+                    <h2>Policy Editor</h2>
                   </EuiTitle>
-                  <CostChart states={states} actions={actions} />
+                  <PolicyEditor policies={states} actions={actions}/>
                 </EuiPanel>
               </EuiFlexItem>
             </EuiFlexGroup>
@@ -173,9 +173,9 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Policy Editor</h2>
+                    <h2>Cost Chart</h2>
                   </EuiTitle>
-                  <PolicyEditor policies={states} actions={actions}/>
+                  <CostChart states={states} actions={actions} />
                 </EuiPanel>
               </EuiFlexItem>
 
