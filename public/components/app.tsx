@@ -22,6 +22,7 @@ import { ActionsManager } from "./actions_manager";
 import { Toolbar } from "./toolbar";
 import { CostChart } from "./cost_chart";
 import { PolicyManager } from "./policy_manager";
+import { PolicyEditor } from "./policy_editor";
 
 interface AdtViewerAppDeps {
   basename: string;
@@ -172,9 +173,9 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Placeholder 2</h2>
+                    <h2>Policy Editor</h2>
                   </EuiTitle>
-                  <p>Content for placeholder 2</p>
+                  <PolicyEditor policies={states} actions={actions}/>
                 </EuiPanel>
               </EuiFlexItem>
 

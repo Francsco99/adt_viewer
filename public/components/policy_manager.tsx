@@ -40,7 +40,6 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({
 
   return (
     <div>
-      <EuiSpacer size="m" />
       {policies.map((policy, index) => (
         <React.Fragment key={policy.state_id}>
           {/* Azioni che portano al corrente stato */}

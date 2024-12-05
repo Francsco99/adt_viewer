@@ -192,7 +192,6 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
 
   return (
     <div>
-      <EuiSpacer size="m" />
       <EuiSwitch
         label="Show all actions"
         checked={showAllActions}
