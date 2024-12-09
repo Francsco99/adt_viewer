@@ -158,5 +158,41 @@ export function defineRoutes(router: IRouter) {
     }
   );
   
+  router.post(
+    {
+      path: "/api/adt_viewer/save_policy/{filename}",
+      validate: false,
+      options:{
+        body:{
+          parse: true,
+          accepts:"application/json",
+        }
+      }
+    },
+    async (context, request, response) => {
+      const pathname = request.url.pathname; // Esempio: "/api/adt_viewer/load_policy/policy_1.json"
+      const segments = pathname.split('/'); // Divide il percorso in segmenti
+      const filename = segments[segments.length - 1]; // Prende l'ultimo segmento
+      //console.log(request);
+      console.log(request.body);
+      const filePath = path.resolve(__dirname, "../data/policies", filename);
+  
+      try {
+        const policyData = request.body;
+        console.log(request);
+        fs.writeFileSync(filePath, JSON.stringify(policyData, null, 2), "utf8");
+        return response.ok({
+          body: { message: `Policy saved as ${filename}` },
+        });
+      } catch (error) {
+        console.log(request);
+        console.log(error);
+        return response.internalError({
+          body: "Failed to save policy",
+        });
+      }
+    }
+  );
+  
 
 }

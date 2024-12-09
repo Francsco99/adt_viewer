@@ -20,7 +20,7 @@ import {
 
 import { CoreStart } from "../../../../src/core/public";
 import { NavigationPublicPluginStart } from "../../../../src/plugins/navigation/public";
-import { TreeContextProvider} from "./tree_context";
+import { TreeContextProvider } from "./tree_context";
 import { NodeInfo } from "./node_info";
 import { TreeStateNavigator } from "./tree_states_navigator";
 import { ActionsManager } from "./actions_manager";
@@ -106,12 +106,16 @@ export const AdtViewerApp = ({
           </EuiHeaderSection>
           <EuiHeaderSection grow={false}>
             {/* Selettore delle Policy */}
-            <EuiFlexGroup alignItems="center" justifyContent="spaceBetween" gutterSize="m">
+            <EuiFlexGroup
+              alignItems="center"
+              justifyContent="spaceBetween"
+              gutterSize="m"
+            >
               <EuiFlexItem grow={false}>
                 <EuiText>
-                <span style={{ fontWeight: "bold" }}>
-                  {selectedPolicy ? selectedPolicy : "No policy selected"}
-                </span>
+                  <span style={{ fontWeight: "bold" }}>
+                    {selectedPolicy ? selectedPolicy : "No policy selected"}
+                  </span>
                 </EuiText>
               </EuiFlexItem>
               <EuiFlexItem grow={false}>
@@ -170,12 +174,21 @@ export const AdtViewerApp = ({
               </EuiFlexItem>
 
               <EuiFlexItem grow={1}>
-                <EuiPanel>
+              <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Actions and Policy Manager</h2>
+                    <h2>Tree Manager</h2>
                   </EuiTitle>
                   <EuiTabbedContent
                     tabs={[
+                      {
+                        id: "nodeInfoTab",
+                        name: "Node Info",
+                        content:(
+                          <div style={{padding: "16px"}}>
+                            <NodeInfo http={http} notifications={notifications} />
+                          </div>
+                        )
+                      },
                       {
                         id: "actionsManagerTab",
                         name: "Actions Manager",
@@ -185,25 +198,14 @@ export const AdtViewerApp = ({
                           </div>
                         ),
                       },
-                      {
-                        id: "policyManagerTab",
-                        name: "Policy Manager",
-                        content: (
-                          <div style={{ padding: "16px" }}>
-                            <PolicyManager
-                              policies={states}
-                              actions={actions}
-                            />
-                          </div>
-                        ),
-                      },
+                      
                     ]}
                     initialSelectedTab={{
-                      id: "actionsManagerTab",
-                      name: "Actions Manager",
+                      id: "nodeInfoTab",
+                      name: "Node Info",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <ActionsManager states={states} actions={actions} />
+                          <NodeInfo http={http} notifications={notifications} />
                         </div>
                       ),
                     }}
@@ -216,9 +218,9 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Policy Editor</h2>
+                    <h2>Cost Chart</h2>
                   </EuiTitle>
-                  <PolicyEditor policies={states} actions={actions} editable={isEditable}/>
+                  <CostChart states={states} actions={actions} />
                 </EuiPanel>
               </EuiFlexItem>
             </EuiFlexGroup>
@@ -227,30 +229,66 @@ export const AdtViewerApp = ({
 
             {/* Seconda riga */}
             <EuiFlexGroup gutterSize="m">
-              <EuiFlexItem grow={1}>
+
+            <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Node Info</h2>
+                    <h2>Placeholder</h2>
                   </EuiTitle>
-                  <NodeInfo http={http} notifications={notifications} />
                 </EuiPanel>
               </EuiFlexItem>
 
-              <EuiFlexItem grow={1}>
+              <EuiFlexItem grow={2}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Cost Chart</h2>
+                    <h2>Policy Editor</h2>
                   </EuiTitle>
-                  <CostChart states={states} actions={actions} />
-                </EuiPanel>
-              </EuiFlexItem>
-
-              <EuiFlexItem grow={1}>
-                <EuiPanel>
-                  <EuiTitle size="m">
-                    <h2>Placeholder 3</h2>
-                  </EuiTitle>
-                  <p>Content for placeholder 3</p>
+                  <EuiTabbedContent
+                    tabs={[
+                      {
+                      id: "policyEditorTab",
+                      name:"Policy Editor",
+                      content:(
+                        <div style={{padding:"16px"}}>
+                          <PolicyEditor
+                            notifications={notifications}
+                            selectedPolicy={selectedPolicy || "missing_name.json"}
+                            http={http}
+                            states={states}
+                            actions={actions}
+                            editable={isEditable}
+                          />
+                        </div>
+                      ),
+                    },
+                    {
+                      id: "policyMangerTab",
+                      name:"Policy Manager",
+                      content:(
+                        <div style={{padding: "16px"}}>
+                          <PolicyManager policies={states} actions={actions}/>
+                        </div>
+                      )
+                    },
+                    ]}
+                    initialSelectedTab={{
+                      id: "policyEditorTab",
+                      name:"Policy Editor",
+                      content:(
+                        <div style={{padding:"16px"}}>
+                          <PolicyEditor
+                            notifications={notifications}
+                            selectedPolicy={selectedPolicy || "missing_name.json"}
+                            http={http}
+                            states={states}
+                            actions={actions}
+                            editable={isEditable}
+                          />
+                        </div>
+                      ),
+                    }}
+                  />
+                  
                 </EuiPanel>
               </EuiFlexItem>
             </EuiFlexGroup>
