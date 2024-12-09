@@ -1,0 +1,111 @@
+{
+    "editable": false,
+    "states": [
+        {
+            "state_id": 0,
+            "active_nodes": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                1,
+                0,
+                1,
+                0,
+                1,
+                1,
+                1
+            ],
+            "actions_id": [],
+            "action_nodes":[]
+
+        },
+        {
+            "state_id": 1,
+            "active_nodes": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                0,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            "actions_id": [0],
+            "action_nodes": [5,10]
+        },
+        {
+            "state_id": 2,
+            "active_nodes": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0,
+                1,
+                0,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            "actions_id": [12],
+            "action_nodes": [6]
+        },
+        {
+            "state_id": 3,
+            "active_nodes": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                1,
+                0,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            "actions_id": [2],
+            "action_nodes":[8]
+        },
+        {
+            "state_id": 4,
+            "active_nodes": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                1,
+                1
+            ],
+            "actions_id": [8],
+            "action_nodes":[7]
+        }
+    ]
+}

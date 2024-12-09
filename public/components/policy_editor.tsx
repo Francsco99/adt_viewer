@@ -31,9 +31,10 @@ interface TableRow {
 interface PolicyEditorProps {
   policies: Policy[];
   actions: Action[];
+  editable: Boolean;
 }
 
-export const PolicyEditor: React.FC<PolicyEditorProps> = ({ policies, actions }) => {
+export const PolicyEditor: React.FC<PolicyEditorProps> = ({ policies, actions, editable }) => {
   const [tableData, setTableData] = useState<TableRow[]>([]);
   const [sortField, setSortField] = useState<keyof TableRow>("state");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -109,10 +110,10 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({ policies, actions })
       render: () => (
         <div style={{ display: "flex", gap: "8px" }}>
           <EuiToolTip position="bottom" content={"Edit action"}>
-            <EuiButtonIcon iconType="pencil" color="primary" aria-label="Edit Action" />
+            <EuiButtonIcon isDisabled={!editable} iconType="pencil" color="primary" aria-label="Edit Action" />
           </EuiToolTip>
           <EuiToolTip position="bottom" content={"Delete action"}>
-          <EuiButtonIcon iconType="trash" color="danger" aria-label="Delete Action" />
+          <EuiButtonIcon isDisabled={!editable} iconType="trash" color="danger" aria-label="Delete Action" />
           </EuiToolTip>
         </div>
       ),

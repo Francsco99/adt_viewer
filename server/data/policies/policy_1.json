@@ -1,4 +1,5 @@
 {
+    "editable": true,
     "states": [
         {
             "state_id": 0,
@@ -10,7 +11,7 @@
                 1,
                 0,
                 1,
-                1,
+                0,
                 0,
                 1,
                 0,
@@ -28,7 +29,7 @@
                 0,
                 0,
                 0,
-                0,
+                1,
                 1,
                 1,
                 1,
@@ -41,7 +42,7 @@
                 1
             ],
             "actions_id": [0],
-            "action_nodes": [5,10]
+            "action_nodes": [3,7]
         },
         {
             "state_id": 2,
@@ -50,7 +51,7 @@
                 0,
                 0,
                 0,
-                1,
+                0,
                 1,
                 0,
                 1,
@@ -61,8 +62,8 @@
                 1,
                 1
             ],
-            "actions_id": [12],
-            "action_nodes": [6]
+            "actions_id": [2],
+            "action_nodes": [4]
         },
         {
             "state_id": 3,
@@ -73,7 +74,7 @@
                 0,
                 1,
                 1,
-                1,
+                0,
                 0,
                 1,
                 1,
@@ -82,8 +83,8 @@
                 1,
                 1
             ],
-            "actions_id": [2],
-            "action_nodes":[8]
+            "actions_id": [9],
+            "action_nodes":[6]
         },
         {
             "state_id": 4,
@@ -100,11 +101,11 @@
                 1,
                 1,
                 1,
-                1,
+                0,
                 1
             ],
-            "actions_id": [8],
-            "action_nodes":[7]
+            "actions_id": [5],
+            "action_nodes":[12]
         }
     ]
 }
