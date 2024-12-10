@@ -11,9 +11,9 @@ import {
 import { useTreeContext } from "./tree_context";
 
 interface ToolbarProps {
-  currentStateIndex: number;
-  setCurrentStateIndex: React.Dispatch<React.SetStateAction<number>>;
-  states: { state_id: number }[];
+  currentStateIndex: number; // Index of the current state
+  setCurrentStateIndex: React.Dispatch<React.SetStateAction<number>>; // Function to update the current state index
+  states: { state_id: number }[]; // List of states
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -21,10 +21,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   setCurrentStateIndex,
   states,
 }) => {
-  const { setSelectedState, selectedState } =
-    useTreeContext();
-  const [isCycling, setIsCycling] = useState(false);
+  const { setSelectedState, selectedState } = useTreeContext(); // Context for the selected state
+  const [isCycling, setIsCycling] = useState(false); // Indicates if cycling through states is active
 
+  // Navigate to the previous state
   const goToPreviousState = () => {
     if (currentStateIndex > 0) {
       const newIndex = currentStateIndex - 1;
@@ -33,6 +33,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
+  // Navigate to the next state
   const goToNextState = () => {
     if (currentStateIndex < states.length - 1) {
       const newIndex = currentStateIndex + 1;
@@ -41,10 +42,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     }
   };
 
+  // Start cycling through states
   const startCycling = () => {
     setIsCycling(true);
   };
 
+  // Stop cycling through states
   const stopCycling = () => {
     setIsCycling(false);
   };
@@ -52,84 +55,89 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
+    // Automatically navigate through states if cycling is active
     if (isCycling) {
       interval = setInterval(() => {
         setCurrentStateIndex((prevIndex) => {
           const newIndex = prevIndex + 1;
           if (newIndex >= states.length) {
-            setIsCycling(false);
+            setIsCycling(false); // Stop cycling when reaching the last state
             clearInterval(interval!);
             return prevIndex;
           }
           setSelectedState(states[newIndex].state_id);
           return newIndex;
         });
-      }, 2000);
+      }, 2000); // Change state every 2 seconds
     }
 
     return () => {
-      if (interval) clearInterval(interval);
+      if (interval) clearInterval(interval); // Cleanup the interval on unmount
     };
   }, [isCycling, setCurrentStateIndex, setSelectedState, states]);
 
-
   return (
-      <EuiHeaderSection grow>
-        <EuiHeaderSectionItem>
-          <EuiHeaderLogo>ADT Visualizer</EuiHeaderLogo>
-        </EuiHeaderSectionItem>
+    <EuiHeaderSection grow>
+      {/* Logo */}
+      <EuiHeaderSectionItem>
+        <EuiHeaderLogo>ADT Manager</EuiHeaderLogo>
+      </EuiHeaderSectionItem>
 
-        <EuiHeaderSectionItem border="none">
-          <EuiToolTip position="bottom" content={"Go to previous state"}>
-            <EuiButtonIcon
-              iconType="framePrevious"
-              onClick={goToPreviousState}
-              size="m"
-              aria-label="Previous State"
-              isDisabled={currentStateIndex <= 0}
-            />
-          </EuiToolTip>
+      {/* Toolbar Buttons */}
+      <EuiHeaderSectionItem border="none">
+        {/* Previous State */}
+        <EuiToolTip position="bottom" content={"Go to previous state"}>
+          <EuiButtonIcon
+            iconType="framePrevious"
+            onClick={goToPreviousState}
+            size="m"
+            aria-label="Previous State"
+            isDisabled={currentStateIndex <= 0} // Disable if on the first state
+          />
+        </EuiToolTip>
 
-          <EuiToolTip position="bottom" content={"Go to next state"}>
-            <EuiButtonIcon
-              iconType="frameNext"
-              onClick={goToNextState}
-              size="m"
-              aria-label="Next State"
-              isDisabled={currentStateIndex >= states.length - 1}
-            />
-          </EuiToolTip>
+        {/* Next State */}
+        <EuiToolTip position="bottom" content={"Go to next state"}>
+          <EuiButtonIcon
+            iconType="frameNext"
+            onClick={goToNextState}
+            size="m"
+            aria-label="Next State"
+            isDisabled={currentStateIndex >= states.length - 1} // Disable if on the last state
+          />
+        </EuiToolTip>
 
-          <EuiToolTip
-            position="bottom"
-            content={"Start cycling through states"}
-          >
-            <EuiButtonIcon
-              iconType="play"
-              onClick={startCycling}
-              size="m"
-              aria-label="Start Cycling"
-              isDisabled={isCycling}
-            />
-          </EuiToolTip>
+        {/* Start Cycling */}
+        <EuiToolTip position="bottom" content={"Start cycling through states"}>
+          <EuiButtonIcon
+            iconType="play"
+            onClick={startCycling}
+            size="m"
+            aria-label="Start Cycling"
+            isDisabled={isCycling} // Disable if cycling is already active
+          />
+        </EuiToolTip>
 
-          <EuiToolTip position="bottom" content={"Stop cycling through states"}>
-            <EuiButtonIcon
-              iconType="stop"
-              onClick={stopCycling}
-              size="m"
-              aria-label="Stop Cycling"
-              isDisabled={!isCycling}
-            />
-          </EuiToolTip>
+        {/* Stop Cycling */}
+        <EuiToolTip position="bottom" content={"Stop cycling through states"}>
+          <EuiButtonIcon
+            iconType="stop"
+            onClick={stopCycling}
+            size="m"
+            aria-label="Stop Cycling"
+            isDisabled={!isCycling} // Disable if cycling is not active
+          />
+        </EuiToolTip>
 
-          <EuiText>
-            <span>Current State: </span>
-            <span style={{fontWeight:"bold"}}> {selectedState}</span>
-          </EuiText>
+        {/* Current State Display */}
+        <EuiText>
+          <span>Current State: </span>
+          <span style={{ fontWeight: "bold" }}>{selectedState}</span>
+        </EuiText>
 
-          {isCycling && <EuiLoadingSpinner size="l" />}
-        </EuiHeaderSectionItem>
-      </EuiHeaderSection>
+        {/* Cycling Indicator */}
+        {isCycling && <EuiLoadingSpinner size="l" />}
+      </EuiHeaderSectionItem>
+    </EuiHeaderSection>
   );
 };
