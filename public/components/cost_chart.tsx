@@ -30,8 +30,7 @@ interface CostChartProps {
 }
 
 export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
-  const { selectedState } = useTreeContext();
-
+  const { selectedState } = useTreeContext(); // Get the selected state from context
   const [data, setData] = useState<{
     attackerColored: { x: number; y: number }[];
     attackerGray: { x: number; y: number }[];
@@ -47,6 +46,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
       let cumulativeAttackerCost = 0;
       let cumulativeDefenderCost = 0;
 
+      // Calculate cumulative costs
       states.forEach((state) => {
         const stateActions = actions.filter((action) =>
           state.actions_id.includes(action.id)
@@ -67,7 +67,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         defenderData.push({ x: state.state_id, y: cumulativeDefenderCost });
       });
 
-      // Dividi i dati in colorati e grigi in base allo stato corrente
+      // Split data into colored and gray segments
       const attackerColored = attackerData.filter(
         (point) => point.x <= selectedState
       );
@@ -81,7 +81,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         (point) => point.x >= selectedState
       );
 
-      // Aggiungi un punto extra al confine per mantenere continuità tra le linee
+      // Add boundary points for continuity
       if (attackerGray.length > 0 && attackerColored.length > 0) {
         attackerGray.unshift(attackerColored[attackerColored.length - 1]);
       }
@@ -104,7 +104,8 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
     <div style={{ height: "400px" }}>
       <Chart>
         <Settings showLegend={true} legendPosition={Position.Top} />
-        {/* Defender Series */}
+
+        {/* Defender cumulative and future costs */}
         <AreaSeries
           id="Defender Colored Area"
           name="Defender Cumulative Cost"
@@ -149,7 +150,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           hideInLegend
         />
 
-        {/* Attacker Series */}
+        {/* Attacker cumulative and future costs */}
         <AreaSeries
           id="Attacker Colored Area"
           name="Attacker Cumulative Cost"
@@ -194,6 +195,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           hideInLegend
         />
 
+        {/* Axes */}
         <Axis
           id="bottom-axis"
           position={Position.Bottom}
