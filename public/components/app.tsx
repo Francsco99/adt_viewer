@@ -190,7 +190,7 @@ export const AdtViewerApp = ({
                         name: "Node Info",
                         content:(
                           <div style={{padding: "16px"}}>
-                            <NodeInfo treeData={treeData} http={http} notifications={notifications}/>
+                            <NodeInfo treeData={treeData}/>
                           </div>
                         )
                       },
@@ -210,7 +210,7 @@ export const AdtViewerApp = ({
                       name: "Node Info",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <NodeInfo treeData={treeData} http={http} notifications={notifications} />
+                          <NodeInfo treeData={treeData}/>
                         </div>
                       ),
                     }}

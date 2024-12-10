@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
-import { CoreStart } from "../../../../src/core/public";
 
 interface NodeInfoProps {
-  http: CoreStart["http"];
-  notifications: CoreStart["notifications"];
-  treeData: { nodes: { id: number; label: string }[] } | null; // Permetti `null`
+  treeData: { nodes: { id: number; label: string }[] } | null; // Allow null for treeData
 }
 
 interface Node {
@@ -15,17 +12,20 @@ interface Node {
   selected: boolean;
 }
 
-export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications, treeData }) => {
-  const { selectedNodes } = useTreeContext(); // Usa il contesto per i nodi selezionati
-  const [showAllNodes, setShowAllNodes] = useState(false); // Stato per il toggle
-  const [pageIndex, setPageIndex] = useState(0); // Indice della pagina corrente
-  const [pageSize, setPageSize] = useState(5); // Dimensione della pagina
-  
+export const NodeInfo: React.FC<NodeInfoProps> = ({
+  treeData,
+}) => {
+  const { selectedNodes } = useTreeContext(); // Get selected nodes from context
+  const [showAllNodes, setShowAllNodes] = useState(false); // Toggle to show all nodes
+  const [pageIndex, setPageIndex] = useState(0); // Current page index
+  const [pageSize, setPageSize] = useState(5); // Page size
+
+  // Show loading message if treeData is not available
   if (!treeData) {
     return <p>Loading tree data...</p>;
   }
 
-  // Genera le righe della tabella
+  // Prepare table rows
   const rows: Node[] = showAllNodes
     ? treeData.nodes.map((node) => ({
         id: node.id,
@@ -38,12 +38,13 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications, treeDat
         selected: true,
       }));
 
-  // Calcola gli elementi visibili in base alla pagina corrente
+  // Paginate rows based on current page
   const paginatedRows = rows.slice(
     pageIndex * pageSize,
     pageIndex * pageSize + pageSize
   );
 
+  // Define table columns
   const columns = [
     {
       field: "id",
@@ -65,42 +66,45 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications, treeDat
     },
   ];
 
-  // Configura la paginazione
+  // Configure pagination
   const pagination = {
     pageIndex,
     pageSize,
     totalItemCount: rows.length,
-    pageSizeOptions: [5, 10, 20], // Opzioni per dimensione della pagina
+    pageSizeOptions: [5, 10, 20], // Available page sizes
   };
 
+  // Handle table page change
   const onTableChange = ({
     page,
   }: {
     page: { index: number; size: number };
   }) => {
     if (page) {
-      setPageIndex(page.index); // Aggiorna l'indice della pagina
-      setPageSize(page.size); // Aggiorna la dimensione della pagina
+      setPageIndex(page.index); // Update page index
+      setPageSize(page.size); // Update page size
     }
   };
 
   return (
     <div>
+      {/* Toggle to show all nodes or selected nodes */}
       <EuiSwitch
         label="Show all nodes"
         checked={showAllNodes}
         onChange={(e) => {
           setShowAllNodes(e.target.checked);
-          setPageIndex(0); // Resetta alla prima pagina
+          setPageIndex(0); // Reset to first page
         }}
       />
       <EuiSpacer size="m" />
+      {/* Render the table */}
       <EuiBasicTable<Node>
-        items={paginatedRows} // Mostra solo le righe della pagina corrente
+        items={paginatedRows} // Rows for the current page
         columns={columns}
         tableLayout="auto"
-        pagination={pagination} // Configura la paginazione
-        onChange={onTableChange} // Gestione del cambio pagina
+        pagination={pagination} // Pagination configuration
+        onChange={onTableChange} // Handle table change events
       />
     </div>
   );
