@@ -39,7 +39,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   states,
   actions,
 }) => {
-  const { selectedNode, selectedState } = useTreeContext();
+  const { selectedNodes, selectedState } = useTreeContext(); // Use selectedNodes
   const [showAllActions, setShowAllActions] = useState(false);
   const [nodeActions, setNodeActions] = useState<Action[]>([]);
   const [stateTransitionActions, setStateTransitionActions] = useState<
@@ -47,29 +47,30 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   >([]);
   const [nextState, setNextState] = useState<number | null>(null);
 
-  // Stato per paginazione
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageIndex, setPageIndex] = useState(0); // Pagination state
+  const [pageSize, setPageSize] = useState(5); // Page size state
+  const [sortField, setSortField] = useState<keyof TableRow>("agent"); // Sorting field
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Sorting direction
 
-  // Stato per sorting
-  const [sortField, setSortField] = useState<keyof TableRow>("agent");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-
+  // Update node-specific actions when selectedNodes changes
   useEffect(() => {
-    if (selectedNode) {
-      const nodeId = selectedNode.data.id;
+    if (selectedNodes && selectedNodes.length > 0) {
+      const nodeIds = selectedNodes.map((node) => node.data.id);
       const relevantActionIds = states.flatMap((state) =>
-        state.action_nodes.includes(nodeId) ? state.actions_id : []
+        state.action_nodes.some((nodeId) => nodeIds.includes(nodeId))
+          ? state.actions_id
+          : []
       );
-      const actionsForNode = actions.filter((action) =>
+      const actionsForNodes = actions.filter((action) =>
         relevantActionIds.includes(action.id)
       );
-      setNodeActions(actionsForNode);
+      setNodeActions(actionsForNodes);
     } else {
       setNodeActions([]);
     }
-  }, [selectedNode, states, actions]);
+  }, [selectedNodes, states, actions]);
 
+  // Update state transition actions based on selectedState
   useEffect(() => {
     if (selectedState !== undefined) {
       const currentState = states.find(
@@ -96,6 +97,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     }
   }, [selectedState, states, actions]);
 
+  // Sort table items
   const getSortedItems = (items: TableRow[]) => {
     return [...items].sort((a, b) => {
       const first = a[sortField];
@@ -197,16 +199,18 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         checked={showAllActions}
         onChange={(e) => {
           setShowAllActions(e.target.checked);
-          setPageIndex(0); // Reset della pagina
+          setPageIndex(0); // Reset page index
         }}
       />
       <EuiSpacer size="m" />
-      {/* Tabella delle azioni disponibili per il nodo selezionato */}
+      {/* Table for actions available for selected nodes */}
       <EuiText>
         <h5>
-          {selectedNode
-            ? `Actions available for Node ${selectedNode.data.id}`
-            : "No Node Selected"}
+          {selectedNodes && selectedNodes.length > 0
+            ? `Actions available for Nodes: ${selectedNodes
+                .map((node) => node.data.id)
+                .join(", ")}`
+            : "No Nodes Selected"}
         </h5>
       </EuiText>
 
@@ -219,7 +223,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         pagination={paginationNodeActions}
       />
       <EuiSpacer size="l" />
-      {/* Tabella delle azioni di transizione */}
+      {/* Table for state transition actions */}
       <EuiText>
         <h5>
           State {selectedState}{" "}
