@@ -24,7 +24,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const gRef = useRef<SVGGElement | null>(null);
-  const { selectedNode, setSelectedNode } = useTreeContext();
+  const { selectedNodes, setSelectedNodes} = useTreeContext();
 
   const zoomBehavior = useRef<ZoomBehavior<SVGSVGElement, unknown>>();
   const [dimensions, setDimensions] = useState<{
@@ -98,11 +98,12 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .append("g")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .on("click", (event, d) => {
-        if(selectedNode && selectedNode.data.id === d.data.id){
-          setSelectedNode(null);
-        }
-        else{
-        setSelectedNode(d);
+        if (selectedNodes.some((node) => node.data.id === d.data.id)) {
+          // Se il nodo è già selezionato, rimuovilo dall'elenco
+          setSelectedNodes(selectedNodes.filter((node) => node.data.id !== d.data.id));
+        } else {
+          // Altrimenti, aggiungilo all'elenco
+          setSelectedNodes([...selectedNodes, d]);
         }
       });
 
@@ -112,10 +113,10 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("ry", 30)
       .attr("fill", (d, i) => (activeNodes[i] === 1 ? "pink" : "white"))
       .attr("stroke", (d) =>
-        selectedNode && selectedNode.data.id === d.data.id ? "red" : "red"
+        selectedNodes.some((node) => node.data.id === d.data.id) ? "red" : "red"
       )
       .attr("stroke-width", (d) =>
-        selectedNode && selectedNode.data.id === d.data.id ? 5 : 3
+        selectedNodes.some((node) => node.data.id === d.data.id) ? 5 : 3
       );
 
     nodesGroup
@@ -124,7 +125,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("dy", ".35em")
       .attr("font-size", "30px")
       .attr("font-weight", (d) =>
-        selectedNode && selectedNode.data.id === d.data.id ? "bold" : "normal"
+        selectedNodes.some((node) => node.data.id === d.data.id) ? "bold" : "normal"
       )
       .attr("fill", "black")
       .text((d) => d.data.id);
@@ -160,7 +161,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   }, [
     data,
     activeNodes,
-    selectedNode,
+    selectedNodes,
     dimensions,
     zoomTransform.x,
     zoomTransform.y,

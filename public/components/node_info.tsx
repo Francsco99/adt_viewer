@@ -15,7 +15,7 @@ interface Node {
 }
 
 export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
-  const { selectedNode } = useTreeContext();
+  const { selectedNodes } = useTreeContext();
   const [allNodes, setAllNodes] = useState<{ id: number; label: string }[]>([]);
   const [showAllNodes, setShowAllNodes] = useState(false); // Stato del toggle
   const [loading, setLoading] = useState(true); // Stato del caricamento
@@ -40,17 +40,13 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
     ? allNodes.map((node) => ({
         id: node.id,
         label: node.label,
-        selected: selectedNode?.data.id === node.id,
+        selected: selectedNodes.some((n) => n.data.id === node.id),
       }))
-    : selectedNode
-    ? [
-        {
-          id: selectedNode.data.id,
-          label: selectedNode.data.label,
-          selected: true,
-        },
-      ]
-    : [];
+      : selectedNodes.map((node) => ({
+        id: node.data.id,
+        label: node.data.label,
+        selected: true,
+      }));
 
   // Calcola gli elementi visibili in base alla pagina corrente
   const paginatedRows = showAllNodes

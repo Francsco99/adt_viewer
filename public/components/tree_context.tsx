@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface TreeContextType {
-  selectedNode: any;
-  setSelectedNode: (node: any) => void;
+  selectedNodes: any[]; // Array per i nodi selezionati
+  setSelectedNodes: (nodes: any[]) => void; // Funzione per aggiornare i nodi selezionati
   selectedState: number;
   setSelectedState: (state: number) => void;
   selectedPolicy: string;
@@ -16,7 +16,7 @@ const TreeContext = createContext<TreeContextType | undefined>(undefined);
 export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedNodes, setSelectedNodes] = useState<any[]>([]); // Stato per i nodi selezionati
   const [selectedState, setSelectedState] = useState(0);
   const [selectedPolicy, setSelectedPolicy] = useState("policy.json");
   const [states, setStates] = useState<any[]>([]);
@@ -24,8 +24,8 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   return (
     <TreeContext.Provider
       value={{
-        selectedNode,
-        setSelectedNode,
+        selectedNodes,
+        setSelectedNodes,
         selectedState,
         setSelectedState,
         selectedPolicy,
