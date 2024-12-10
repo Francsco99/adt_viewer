@@ -98,7 +98,12 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .append("g")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .on("click", (event, d) => {
+        if(selectedNode && selectedNode.data.id === d.data.id){
+          setSelectedNode(null);
+        }
+        else{
         setSelectedNode(d);
+        }
       });
 
     nodesGroup
