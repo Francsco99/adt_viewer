@@ -1,8 +1,42 @@
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises'; // Utilizzo della versione async di fs
+import { schema } from '@osd/config-schema';
 import { IRouter } from '../../../../src/core/server';
 
+/**
+ * Funzione helper per leggere un file JSON.
+ * @param filePath Il percorso del file da leggere.
+ * @returns Il contenuto del file JSON come oggetto.
+ */
+async function readJsonFile(filePath: string): Promise<any> {
+  try {
+    const fileContent = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error(`Failed to read file at ${filePath}:`, error instanceof Error ? error.message : error);
+    throw new Error('Failed to read the file');
+  }
+}
+
+/**
+ * Funzione helper per scrivere dati in un file JSON.
+ * @param filePath Il percorso del file in cui scrivere.
+ * @param data I dati da scrivere nel file.
+ */
+async function writeJsonFile(filePath: string, data: object): Promise<void> {
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error(`Failed to write file at ${filePath}:`, error instanceof Error ? error.message : error);
+    throw new Error('Failed to write the file');
+  }
+}
+
 export function defineRoutes(router: IRouter) {
+  /**
+   * Route: /api/adt_viewer/tree
+   * Descrizione: Restituisce i dati dell'albero degli attacchi.
+   */
   router.get(
     {
       path: '/api/adt_viewer/tree',
@@ -11,19 +45,20 @@ export function defineRoutes(router: IRouter) {
     async (context, request, response) => {
       const filePath = path.resolve(__dirname, '../data/tree/tree.json');
       try {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        const treeData = JSON.parse(fileContent);
-        return response.ok({
-          body: treeData,
-        });
+        const treeData = await readJsonFile(filePath);
+        return response.ok({ body: treeData });
       } catch (error) {
         return response.internalError({
-          body: 'Failed to read attack tree data',
+          body: 'An error occurred while retrieving the attack tree data.',
         });
       }
     }
   );
 
+  /**
+   * Route: /api/adt_viewer/actions
+   * Descrizione: Restituisce i dati delle azioni.
+   */
   router.get(
     {
       path: '/api/adt_viewer/actions',
@@ -32,19 +67,20 @@ export function defineRoutes(router: IRouter) {
     async (context, request, response) => {
       const filePath = path.resolve(__dirname, '../data/actions/actions.json');
       try {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        const statesData = JSON.parse(fileContent);
-        return response.ok({
-          body: statesData,
-        });
+        const actionsData = await readJsonFile(filePath);
+        return response.ok({ body: actionsData });
       } catch (error) {
         return response.internalError({
-          body: 'Failed to read tree states data',
+          body: 'An error occurred while retrieving the actions data.',
         });
       }
     }
   );
 
+  /**
+   * Route: /api/adt_viewer/policies_list
+   * Descrizione: Restituisce un elenco di file di policy disponibili.
+   */
   router.get(
     {
       path: '/api/adt_viewer/policies_list',
@@ -52,90 +88,87 @@ export function defineRoutes(router: IRouter) {
     },
     async (context, request, response) => {
       const directoryPath = path.resolve(__dirname, '../data/policies');
-      const files = fs.readdirSync(directoryPath).filter((file) => file.endsWith('.json'));
-      
-      return response.ok({
-        body: { policies: files },
-      });
+      try {
+        const files = await fs.readdir(directoryPath);
+        const jsonFiles = files.filter((file) => file.endsWith('.json'));
+        return response.ok({ body: { policies: jsonFiles } });
+      } catch (error) {
+        return response.internalError({
+          body: 'An error occurred while retrieving the policies list.',
+        });
+      }
     }
   );
 
+  /**
+   * Route: /api/adt_viewer/load_policy/{policyName}
+   * Descrizione: Carica una specifica policy dal file system.
+   */
   router.get(
     {
       path: '/api/adt_viewer/load_policy/{policyName}',
-      validate: false, // Disabilita la validazione per gestire manualmente i tipi
+      validate: {
+        params: schema.object({
+          policyName: schema.string({ minLength: 1 }),
+        }),
+      },
     },
     async (context, request, response) => {
+      const { policyName } = request.params;
+      const safeFileName = path.basename(policyName);
+      const filePath = path.resolve(__dirname, '../data/policies', safeFileName);
+
       try {
-        // Ottieni il nome del file dal percorso URL
-        const pathname = request.url.pathname; // Esempio: "/api/adt_viewer/load_policy/policy_1.json"
-        const segments = pathname.split('/'); // Divide il percorso in segmenti
-        const policyName = segments[segments.length - 1]; // Prende l'ultimo segmento
-  
-        // Verifica che il parametro `policyName` sia valido
-        if (!policyName || typeof policyName !== 'string') {
-          console.error('Invalid or missing policyName parameter');
-          return response.badRequest({ body: 'Policy name is required and must be a string' });
-        }
-  
-        console.log('Policy name extracted:', policyName);
-  
-        // Continua con la logica del caricamento della policy
-        const filePath = path.resolve(__dirname, '../data/policies', policyName);
-  
-        if (!fs.existsSync(filePath)) {
-          return response.notFound({ body: `Policy file not found: ${filePath}` });
-        }
-  
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        const states = JSON.parse(fileContent);
-  
-        console.log(`Policy ${policyName} loaded successfully.`);
-  
-        return response.ok({
-          body: states,
-        });
+        const policyData = await readJsonFile(filePath);
+        return response.ok({ body: policyData });
       } catch (error) {
-        console.error('Error loading policy:', error);
-        return response.internalError({ body: 'An error occurred while loading the policy.' });
+        if (error instanceof Error && error.message.includes('ENOENT')) {
+          return response.notFound({
+            body: `The requested policy "${policyName}" does not exist.`,
+          });
+        }
+        return response.internalError({
+          body: 'An error occurred while loading the policy.',
+        });
       }
     }
   );
-  
+
+  /**
+   * Route: /api/adt_viewer/save_policy/{filename}
+   * Descrizione: Salva una policy nel file system.
+   */
   router.post(
     {
-      path: "/api/adt_viewer/save_policy/{filename}",
-      validate: false,
-      options:{
-        body:{
+      path: '/api/adt_viewer/save_policy/{filename}',
+      validate: {
+        params: schema.object({
+          filename: schema.string({ minLength: 1 }),
+        }),
+        body: schema.object({}, { unknowns: 'allow' }),
+      },
+      options: {
+        body: {
           parse: true,
-          accepts:"application/json",
-        }
-      }
+          accepts: 'application/json',
+        },
+      },
     },
     async (context, request, response) => {
-      const pathname = request.url.pathname; // Esempio: "/api/adt_viewer/load_policy/policy_1.json"
-      const segments = pathname.split('/'); // Divide il percorso in segmenti
-      const filename = segments[segments.length - 1]; // Prende l'ultimo segmento
-      //console.log(request);
-      console.log(request.body);
-      const filePath = path.resolve(__dirname, "../data/policies", filename);
-  
+      const { filename } = request.params;
+      const safeFileName = path.basename(filename);
+      const filePath = path.resolve(__dirname, '../data/new_policies', safeFileName);
+
       try {
-        const policyData = request.body;
-        console.log(request);
-        fs.writeFileSync(filePath, JSON.stringify(policyData, null, 2), "utf8");
+        await writeJsonFile(filePath, request.body);
         return response.ok({
           body: { message: `Policy saved as ${filename}` },
         });
       } catch (error) {
-        console.log(request);
-        console.log(error);
         return response.internalError({
-          body: "Failed to save policy",
+          body: 'An error occurred while saving the policy.',
         });
       }
     }
   );
-
 }
