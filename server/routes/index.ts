@@ -5,25 +5,11 @@ import { IRouter } from '../../../../src/core/server';
 export function defineRoutes(router: IRouter) {
   router.get(
     {
-      path: '/api/adt_viewer/example',
-      validate: false,
-    },
-    async (context, request, response) => {
-      return response.ok({
-        body: {
-          time: new Date().toISOString(),
-        },
-      });
-    }
-  );
-
-  router.get(
-    {
       path: '/api/adt_viewer/tree',
       validate: false,
     },
     async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/attack_tree.json');
+      const filePath = path.resolve(__dirname, '../data/tree/tree.json');
       try {
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const treeData = JSON.parse(fileContent);
@@ -40,32 +26,11 @@ export function defineRoutes(router: IRouter) {
 
   router.get(
     {
-      path: '/api/adt_viewer/tree_states',
-      validate: false,
-    },
-    async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/tree_states.json');
-      try {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        const statesData = JSON.parse(fileContent);
-        return response.ok({
-          body: statesData,
-        });
-      } catch (error) {
-        return response.internalError({
-          body: 'Failed to read tree states data',
-        });
-      }
-    }
-  );
-
-  router.get(
-    {
       path: '/api/adt_viewer/actions',
       validate: false,
     },
     async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/actions.json');
+      const filePath = path.resolve(__dirname, '../data/actions/actions.json');
       try {
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const statesData = JSON.parse(fileContent);
@@ -92,27 +57,6 @@ export function defineRoutes(router: IRouter) {
       return response.ok({
         body: { policies: files },
       });
-    }
-  );
-
-  router.get(
-    {
-      path: '/api/adt_viewer/policy',
-      validate: false,
-    },
-    async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/policies/policy.json');
-      try {
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        const policyData = JSON.parse(fileContent);
-        return response.ok({
-          body: policyData,
-        });
-      } catch (error) {
-        return response.internalError({
-          body: 'Failed to read tree states data',
-        });
-      }
     }
   );
 
@@ -193,6 +137,5 @@ export function defineRoutes(router: IRouter) {
       }
     }
   );
-  
 
 }
