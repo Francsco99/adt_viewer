@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
 import { CoreStart } from "../../../../src/core/public";
@@ -6,6 +6,7 @@ import { CoreStart } from "../../../../src/core/public";
 interface NodeInfoProps {
   http: CoreStart["http"];
   notifications: CoreStart["notifications"];
+  treeData: { nodes: { id: number; label: string }[] } | null; // Permetti `null`
 }
 
 interface Node {
@@ -14,44 +15,34 @@ interface Node {
   selected: boolean;
 }
 
-export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
-  const { selectedNodes } = useTreeContext();
-  const [allNodes, setAllNodes] = useState<{ id: number; label: string }[]>([]);
-  const [showAllNodes, setShowAllNodes] = useState(false); // Stato del toggle
-  const [loading, setLoading] = useState(true); // Stato del caricamento
-
-  // Stato per la paginazione
+export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications, treeData }) => {
+  const { selectedNodes } = useTreeContext(); // Usa il contesto per i nodi selezionati
+  const [showAllNodes, setShowAllNodes] = useState(false); // Stato per il toggle
   const [pageIndex, setPageIndex] = useState(0); // Indice della pagina corrente
   const [pageSize, setPageSize] = useState(5); // Dimensione della pagina
+  
+  if (!treeData) {
+    return <p>Loading tree data...</p>;
+  }
 
-  // Carica la lista di nodi dall'API
-  useEffect(() => {
-    setLoading(true);
-    http
-      .get("/api/adt_viewer/tree")
-      .then((res) => {
-        setAllNodes(res.tree?.nodes || []);
-      })
-      .catch(() => notifications.toasts.addDanger("Failed to load tree data"))
-      .finally(() => setLoading(false));
-  }, [http, notifications]);
-
+  // Genera le righe della tabella
   const rows: Node[] = showAllNodes
-    ? allNodes.map((node) => ({
+    ? treeData.nodes.map((node) => ({
         id: node.id,
         label: node.label,
         selected: selectedNodes.some((n) => n.data.id === node.id),
       }))
-      : selectedNodes.map((node) => ({
+    : selectedNodes.map((node) => ({
         id: node.data.id,
         label: node.data.label,
         selected: true,
       }));
 
   // Calcola gli elementi visibili in base alla pagina corrente
-  const paginatedRows = showAllNodes
-    ? rows.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize)
-    : rows;
+  const paginatedRows = rows.slice(
+    pageIndex * pageSize,
+    pageIndex * pageSize + pageSize
+  );
 
   const columns = [
     {
@@ -79,7 +70,7 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
     pageIndex,
     pageSize,
     totalItemCount: rows.length,
-    pageSizeOptions: [5, 10, 20], // Aggiunta delle opzioni per dimensione della pagina
+    pageSizeOptions: [5, 10, 20], // Opzioni per dimensione della pagina
   };
 
   const onTableChange = ({
@@ -93,10 +84,6 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
     }
   };
 
-  if (loading) {
-    return <p>Loading node data...</p>;
-  }
-
   return (
     <div>
       <EuiSwitch
@@ -109,11 +96,11 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ http, notifications }) => {
       />
       <EuiSpacer size="m" />
       <EuiBasicTable<Node>
-        items={paginatedRows}
+        items={paginatedRows} // Mostra solo le righe della pagina corrente
         columns={columns}
         tableLayout="auto"
-        pagination={pagination} // Sempre definito
-        onChange={onTableChange}
+        pagination={pagination} // Configura la paginazione
+        onChange={onTableChange} // Gestione del cambio pagina
       />
     </div>
   );

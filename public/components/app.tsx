@@ -16,6 +16,7 @@ import {
   EuiPopover,
   EuiContextMenu,
   EuiTabbedContent,
+  EuiToolTip,
 } from "@elastic/eui";
 
 import { CoreStart } from "../../../../src/core/public";
@@ -28,6 +29,8 @@ import { Toolbar } from "./toolbar";
 import { CostChart } from "./cost_chart";
 import { PolicyManager } from "./policy_manager";
 import { PolicyEditor } from "./policy_editor";
+import { ProgressiveTreeVisualizer } from "./progressive_tree_visualizer";
+import { PolicyComparisonChart } from "./policy_comparison_chart";
 
 interface AdtViewerAppDeps {
   basename: string;
@@ -121,12 +124,14 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={false}>
                 <EuiPopover
                   button={
+                    <EuiToolTip position="bottom" content={"Choose policy"}>
                     <EuiButtonIcon
                       iconType="list"
                       size="m"
                       onClick={() => setIsPopoverOpen((prev) => !prev)}
                       aria-label="Show Policies"
                     />
+                    </EuiToolTip>
                   }
                   isOpen={isPopoverOpen}
                   closePopover={() => setIsPopoverOpen(false)}
@@ -185,7 +190,7 @@ export const AdtViewerApp = ({
                         name: "Node Info",
                         content:(
                           <div style={{padding: "16px"}}>
-                            <NodeInfo http={http} notifications={notifications} />
+                            <NodeInfo treeData={treeData} http={http} notifications={notifications}/>
                           </div>
                         )
                       },
@@ -205,7 +210,7 @@ export const AdtViewerApp = ({
                       name: "Node Info",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <NodeInfo http={http} notifications={notifications} />
+                          <NodeInfo treeData={treeData} http={http} notifications={notifications} />
                         </div>
                       ),
                     }}
@@ -235,6 +240,7 @@ export const AdtViewerApp = ({
                   <EuiTitle size="m">
                     <h2>Placeholder</h2>
                   </EuiTitle>
+                    
                 </EuiPanel>
               </EuiFlexItem>
 
