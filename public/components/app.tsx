@@ -73,7 +73,13 @@ export const AdtViewerApp = ({
 
     http
       .get("/api/adt_viewer/policies_list")
-      .then((res) => setPoliciesList(res.policies))
+      .then((res) => {
+        setPoliciesList(res.policies)
+        if(res.policies.includes("policy.json")){
+          setSelectedPolicy("policy.json");
+          loadPolicy("policy.json");
+        }
+      })
       .catch((error) =>
         notifications.toasts.addDanger("Failed to load policies list")
       );
@@ -206,13 +212,13 @@ export const AdtViewerApp = ({
                       
                     ]}
                     initialSelectedTab={{
-                      id: "nodeInfoTab",
-                      name: "Node Info",
-                      content: (
-                        <div style={{ padding: "16px" }}>
-                          <NodeInfo treeData={treeData}/>
-                        </div>
-                      ),
+                      id: "actionsManagerTab",
+                        name: "Actions Manager",
+                        content: (
+                          <div style={{ padding: "16px" }}>
+                            <ActionsManager states={states} actions={actions} />
+                          </div>
+                        ),
                     }}
                     autoFocus="selected"
                     size="m"
@@ -223,9 +229,43 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Cost Chart</h2>
+                    <h2>Charts</h2>
                   </EuiTitle>
-                  <CostChart states={states} actions={actions} />
+                  <EuiTabbedContent
+                    tabs={[
+                      {
+                        id: "CostChartTab",
+                        name: "Cost Chart",
+                        content: (
+                          <div style={{padding: "16px"}}>
+                              <CostChart states={states} actions={actions}/>
+                          </div>
+                        )
+                      },
+                      {
+                        id: "PolicyComparisonChart",
+                        name: "Policy Comparison",
+                        content: (
+                          <div>
+                            <PolicyComparisonChart 
+                              http={http} 
+                              notifications={notifications}
+                              policiesList={policiesList} 
+                              actions={actions}/>
+                          </div>
+                        )
+                      }
+                    ]}
+                    initialSelectedTab={{
+                      id: "CostChartTab",
+                        name: "Cost Chart",
+                        content: (
+                          <div style={{padding: "16px"}}>
+                              <CostChart states={states} actions={actions}/>
+                          </div>
+                        )
+                    }}
+                  />
                 </EuiPanel>
               </EuiFlexItem>
             </EuiFlexGroup>
@@ -235,12 +275,11 @@ export const AdtViewerApp = ({
             {/* Seconda riga */}
             <EuiFlexGroup gutterSize="m">
 
-            <EuiFlexItem grow={1}>
+              <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Placeholder</h2>
                   </EuiTitle>
-                    
                 </EuiPanel>
               </EuiFlexItem>
 
