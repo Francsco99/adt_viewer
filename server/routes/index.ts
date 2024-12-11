@@ -157,7 +157,7 @@ export function defineRoutes(router: IRouter) {
     async (context, request, response) => {
       const { filename } = request.params;
       const safeFileName = path.basename(filename);
-      const filePath = path.resolve(__dirname, '../data/new_policies', safeFileName);
+      const filePath = path.resolve(__dirname, '../data/policies', safeFileName);
 
       try {
         await writeJsonFile(filePath, request.body);
