@@ -8,6 +8,9 @@
     "osd": "../../scripts/use_node ../../scripts/osd"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/modifiers": "^9.0.0",
+    "@dnd-kit/sortable": "^10.0.0",
     "@types/d3": "^7.4.3",
     "@types/d3-transition": "^3.0.9",
     "@types/d3-zoom": "^3.0.8",

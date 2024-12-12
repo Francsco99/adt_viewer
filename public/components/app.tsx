@@ -31,6 +31,7 @@ import { PolicyManager } from "./policy_manager";
 import { PolicyEditor } from "./policy_editor";
 import { ProgressiveTreeVisualizer } from "./progressive_tree_visualizer";
 import { PolicyComparisonChart } from "./policy_comparison_chart";
+import { ActiveNodeViewer } from "./active_node_viewer";
 
 interface AdtViewerAppDeps {
   basename: string;
@@ -280,6 +281,11 @@ export const AdtViewerApp = ({
                   <EuiTitle size="m">
                     <h2>Placeholder</h2>
                   </EuiTitle>
+                  {treeData ? (
+      <ActiveNodeViewer treeData={treeData} states={states} />
+    ) : (
+      <p>Loading active nodes...</p>
+    )}
                 </EuiPanel>
               </EuiFlexItem>
 

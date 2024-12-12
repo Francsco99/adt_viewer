@@ -132,6 +132,24 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     }
   };
 
+  const handleAddRow = () => {
+    // Trova il primo `state_id` disponibile
+    const stateIds = states.map((state) => state.state_id);
+    const newStateId =
+      stateIds.length > 0 ? Math.max(...stateIds) + 1 : 1; // Se non ci sono stati, inizia da 1
+
+    const newRow: TableRow = {
+      state: `new -> ${newStateId}`,
+      agent: "Unknown",
+      action: "Unknown",
+      cost: "Unknown",
+      time: "Unknown",
+      nodes: [],
+    };
+
+    setTableData((prevData) => [...prevData, newRow]);
+  };
+
   const handleSaveChanges = async () => {
     try {
       const timestamp = Date.now();
@@ -286,6 +304,12 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
         onChange={handleToggleEditMode}
         disabled={!editable}
       />
+      <EuiSpacer size="m" />
+      {isEditMode && (
+        <EuiButton color="secondary" onClick={handleAddRow}>
+          Add Row
+        </EuiButton>
+      )}
       <EuiSpacer size="m" />
       <EuiBasicTable<TableRow>
         items={sortedItems}

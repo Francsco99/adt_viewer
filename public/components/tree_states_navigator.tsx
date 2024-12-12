@@ -26,7 +26,7 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
 }) => {
   const { selectedState } = useTreeContext(); // Get the currently selected state from context
   const currentActiveNodes = states[selectedState]?.active_nodes || []; // Determine active nodes for the selected state
-
+ 
   return (
     <div>
       {/* Render the tree visualizer with the active nodes for the current state */}
