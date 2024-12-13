@@ -61,6 +61,8 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   const [popoverOpen, setPopoverOpen] = useState<Record<number, boolean>>({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0); // Pagination state
+  const [pageSize, setPageSize] = useState(5); // Page size state
 
   useEffect(() => {
     const rows = states
@@ -122,24 +124,26 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
   };
 
   const handleTableChange = ({
+    page,
     sort,
   }: {
+    page?: { index: number; size: number };
     sort?: { field: keyof TableRow; direction: "asc" | "desc" };
   }) => {
     if (sort) {
       setSortField(sort.field);
       setSortDirection(sort.direction);
     }
+
+    if (page) {
+      setPageIndex(page.index);
+      setPageSize(page.size);
+    }
   };
 
   const handleAddRow = () => {
-    // Trova il primo `state_id` disponibile
-    const stateIds = states.map((state) => state.state_id);
-    const newStateId =
-      stateIds.length > 0 ? Math.max(...stateIds) + 1 : 1; // Se non ci sono stati, inizia da 1
-
     const newRow: TableRow = {
-      state: `new -> ${newStateId}`,
+      state: `new -> new`,
       agent: "Unknown",
       action: "Unknown",
       cost: "Unknown",
@@ -208,7 +212,10 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     setIsEditMode(false);
   };
 
-  const sortedItems = getSortedItems(tableData);
+  const paginatedItems = getSortedItems(tableData).slice(
+    pageIndex * pageSize,
+    (pageIndex + 1) * pageSize
+  );
 
   const columns: Array<EuiBasicTableColumn<TableRow>> = [
     {
@@ -312,10 +319,16 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
       )}
       <EuiSpacer size="m" />
       <EuiBasicTable<TableRow>
-        items={sortedItems}
+        items={paginatedItems}
         columns={columns}
         tableLayout="auto"
         sorting={{ sort: { field: sortField, direction: sortDirection } }}
+        pagination={{
+          pageIndex,
+          pageSize,
+          totalItemCount: tableData.length,
+          pageSizeOptions: [5, 10, 20], // Options for page size
+        }}
         onChange={handleTableChange}
       />
       {isEditMode && (
