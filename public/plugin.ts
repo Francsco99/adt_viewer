@@ -9,7 +9,7 @@ export class AdtViewerPlugin implements Plugin<AdtViewerPluginSetup, AdtViewerPl
     core.application.register({
       id: 'adtViewer',
       title: PLUGIN_NAME,
-      //chromeless: true,
+      chromeless: true, //nascondi default navbar
       async mount(params: AppMountParameters) {
         // Load application bundle
         const { renderApp } = await import('./application');
