@@ -42,9 +42,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   const { selectedNodes, selectedState } = useTreeContext(); // Use selectedNodes
   const [showAllActions, setShowAllActions] = useState(false);
   const [nodeActions, setNodeActions] = useState<Action[]>([]);
-  const [stateTransitionActions, setStateTransitionActions] = useState<
-    Action[]
-  >([]);
+  const [stateTransitionActions, setStateTransitionActions] = useState<Action[]>([]);
   const [nextState, setNextState] = useState<number | null>(null);
 
   const [pageIndex, setPageIndex] = useState(0); // Pagination state
