@@ -29,7 +29,6 @@ import { Toolbar } from "./toolbar";
 import { CostChart } from "./cost_chart";
 import { PolicyManager } from "./policy_manager";
 import { PolicyEditor } from "./policy_editor";
-import { ProgressiveTreeVisualizer } from "./progressive_tree_visualizer";
 import { PolicyComparisonChart } from "./policy_comparison_chart";
 import { ActiveNodeViewer } from "./active_node_viewer";
 
@@ -104,7 +103,7 @@ export const AdtViewerApp = ({
     <Router basename={basename}>
       <TreeContextProvider>
         {/* Header */}
-        <EuiHeader>
+        <EuiHeader style={{ position: "fixed", top: "200px", zIndex: 999 }}>
           <EuiHeaderSection grow={true}>
             <EuiHeaderSectionItem>
               <Toolbar
@@ -282,10 +281,10 @@ export const AdtViewerApp = ({
                     <h2>Placeholder</h2>
                   </EuiTitle>
                   {treeData ? (
-      <ActiveNodeViewer treeData={treeData} states={states} />
-    ) : (
-      <p>Loading active nodes...</p>
-    )}
+                    <ActiveNodeViewer treeData={treeData} states={states} />
+                  ) : (
+                    <p>Loading tree data...</p>
+                  )}
                 </EuiPanel>
               </EuiFlexItem>
 
