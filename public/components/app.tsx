@@ -103,7 +103,7 @@ export const AdtViewerApp = ({
     <Router basename={basename}>
       <TreeContextProvider>
         {/* Header */}
-        <EuiHeader style={{ position: "fixed", top: "200px", zIndex: 999 }}>
+        <EuiHeader>
           <EuiHeaderSection grow={true}>
             <EuiHeaderSectionItem>
               <Toolbar
@@ -209,7 +209,15 @@ export const AdtViewerApp = ({
                           </div>
                         ),
                       },
-                      
+                      {
+                        id: "PolicyManagerTab",
+                        name: "Policy Manager",
+                        content: (
+                          <div style={{padding: "16px"}}>
+                              <PolicyManager actions={actions} states ={states}/>
+                          </div>
+                        )
+                      }
                     ]}
                     initialSelectedTab={{
                       id: "actionsManagerTab",
@@ -254,7 +262,7 @@ export const AdtViewerApp = ({
                               actions={actions}/>
                           </div>
                         )
-                      }
+                      },
                     ]}
                     initialSelectedTab={{
                       id: "CostChartTab",
@@ -278,13 +286,9 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Placeholder</h2>
+                    <h2>Placeholer</h2>
                   </EuiTitle>
-                  {treeData ? (
-                    <ActiveNodeViewer treeData={treeData} states={states} />
-                  ) : (
-                    <p>Loading tree data...</p>
-                  )}
+                  
                 </EuiPanel>
               </EuiFlexItem>
 
@@ -293,52 +297,14 @@ export const AdtViewerApp = ({
                   <EuiTitle size="m">
                     <h2>Policy Editor</h2>
                   </EuiTitle>
-                  <EuiTabbedContent
-                    tabs={[
-                      {
-                      id: "policyEditorTab",
-                      name:"Policy Editor",
-                      content:(
-                        <div style={{padding:"16px"}}>
-                          <PolicyEditor
-                            notifications={notifications}
-                            selectedPolicy={selectedPolicy || "missing_name.json"}
-                            http={http}
-                            states={states}
-                            actions={actions}
-                            editable={isEditable}
-                          />
-                        </div>
-                      ),
-                    },
-                    {
-                      id: "policyMangerTab",
-                      name:"Policy Manager",
-                      content:(
-                        <div style={{padding: "16px"}}>
-                          <PolicyManager policies={states} actions={actions}/>
-                        </div>
-                      )
-                    },
-                    ]}
-                    initialSelectedTab={{
-                      id: "policyEditorTab",
-                      name:"Policy Editor",
-                      content:(
-                        <div style={{padding:"16px"}}>
-                          <PolicyEditor
-                            notifications={notifications}
-                            selectedPolicy={selectedPolicy || "missing_name.json"}
-                            http={http}
-                            states={states}
-                            actions={actions}
-                            editable={isEditable}
-                          />
-                        </div>
-                      ),
-                    }}
+                  <PolicyEditor
+                    notifications={notifications}
+                    selectedPolicy={selectedPolicy || "missing_name.json"}
+                    http={http}
+                    states={states}
+                    actions={actions}
+                    editable={isEditable}
                   />
-                  
                 </EuiPanel>
               </EuiFlexItem>
             </EuiFlexGroup>
