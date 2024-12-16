@@ -6,8 +6,22 @@ import {
   EuiSelectable,
   EuiIcon,
 } from "@elastic/eui";
-import { Chart, Settings, Axis, BarSeries, ScaleType, Position } from "@elastic/charts";
+import {
+  Chart,
+  Settings,
+  Axis,
+  LineSeries,
+  ScaleType,
+  Position,
+} from "@elastic/charts";
 import "@elastic/charts/dist/theme_only_light.css";
+
+interface PolicyData {
+  policy: string;
+  cost: number;
+  time: number;
+  objective: number;
+}
 
 interface PolicyComparisonChartProps {
   http: any;
@@ -22,23 +36,18 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
   policiesList,
   actions,
 }) => {
-  const [policyMetrics, setPolicyMetrics] = useState<
-    { policy: string; cost: number; time: number; objective: number }[]
-  >([]);
-  const [selectedPolicies, setSelectedPolicies] = useState<string[]>(policiesList);
+  const [policyMetrics, setPolicyMetrics] = useState<PolicyData[]>([]);
+  const [selectedPolicies, setSelectedPolicies] =
+    useState<string[]>(policiesList);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  // Options for EuiSelectable (allow "on" and undefined)
-  const [options, setOptions] = useState<
-    { label: string; checked?: "on" }[]
-  >(
+  const [options, setOptions] = useState<{ label: string; checked?: "on" }[]>(
     policiesList.map((policy) => ({
       label: policy,
-      checked: "on", // Default to "on"
+      checked: "on",
     }))
   );
 
-  // Weights for the objective function
   const wt = 0.5;
   const wc = 0.5;
 
@@ -47,7 +56,9 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
       try {
         const metrics = await Promise.all(
           policiesList.map(async (policyName) => {
-            const response = await http.get(`/api/adt_viewer/load_policy/${policyName}`);
+            const response = await http.get(
+              `/api/adt_viewer/load_policy/${policyName}`
+            );
             const policy = response;
 
             let totalCost = 0;
@@ -64,13 +75,17 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
             });
 
             const objective = wt * totalTime + wc * totalCost;
-            return { policy: policyName, cost: totalCost, time: totalTime, objective };
+            return {
+              policy: policyName,
+              cost: totalCost,
+              time: totalTime,
+              objective,
+            };
           })
         );
 
         setPolicyMetrics(metrics);
 
-        // Initialize options after data is loaded
         setOptions(
           policiesList.map((policy) => ({
             label: policy,
@@ -78,16 +93,22 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
           }))
         );
       } catch (error) {
-        notifications.toasts.addDanger("Failed to load policy data for comparison");
+        notifications.toasts.addDanger(
+          "Failed to load policy data for comparison"
+        );
       }
     };
 
     fetchPolicyData();
   }, [http, policiesList, actions, notifications, selectedPolicies]);
 
-  const handleSelectionChange = (updatedOptions: { label: string; checked?: "on" }[]) => {
+  const handleSelectionChange = (
+    updatedOptions: { label: string; checked?: "on" }[]
+  ) => {
     setOptions(updatedOptions);
-    const selected = updatedOptions.filter((option) => option.checked === "on").map((o) => o.label);
+    const selected = updatedOptions
+      .filter((option) => option.checked === "on")
+      .map((o) => o.label);
     setSelectedPolicies(selected);
   };
 
@@ -96,59 +117,132 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
   );
 
   return (
-      <EuiFlexGroup alignItems="flexStart" gutterSize="m">
-        {/* Chart */}
-        <EuiFlexItem>
-          {filteredMetrics.length > 0 ? (
-            <Chart size={{ height: 400 }}>
-              <Settings showLegend={false} />
-              <Axis id="bottom-axis" position={Position.Bottom} title="Policy Name" showGridLines />
-              <Axis id="left-axis" position={Position.Left} title="Objective Function Value" showGridLines />
-              <BarSeries
-                id="Objective"
-                name="Objective Function"
-                xScaleType={ScaleType.Ordinal}
-                yScaleType={ScaleType.Linear}
-                xAccessor="policy"
-                yAccessors={["objective"]}
-                data={filteredMetrics}
-              />
-            </Chart>
-          ) : (
-            <p>No policies selected for display.</p>
-          )}
-        </EuiFlexItem>
+    <EuiFlexGroup alignItems="flexStart" gutterSize="m">
+      <EuiFlexItem>
+        {filteredMetrics.length > 0 ? (
+          <Chart size={{ height: 400 }}>
+            <Settings
+              showLegend={false}
+              tooltip={{
+                customTooltip: ({ values }) => (
+                  <div
+                    style={{
+                      padding: "10px",
+                      backgroundColor: "#fff",
+                      border: "1px solid #ccc",
+                    }}
+                  >
+                    {values.map((val, idx) => {
+                      // Cast al tipo PolicyData con controlli extra
+                      const datum = val.datum as Partial<PolicyData>;
+                      if (
+                        !datum ||
+                        !datum.policy ||
+                        datum.objective === undefined
+                      ) {
+                        return null; // Ignora dati incompleti o invalidi
+                      }
 
-        {/* Icon to open the selectable menu */}
-        <EuiFlexItem grow={false}>
-          <EuiPopover
-            button={
-              <EuiIcon
-                type="list"
-                size="l"
-                onClick={() => setIsPopoverOpen((isOpen) => !isOpen)}
-                aria-label="Select policies"
-                style={{ cursor: "pointer" }}
+                      return (
+                        <div key={idx}>
+                          <strong>Policy:</strong> {datum.policy}
+                          <br />
+                          <strong>Time:</strong> {datum.time ?? "N/A"}
+                          <br />
+                          <strong>Monetary Cost:</strong> {datum.cost ?? "N/A"}
+                          <br />
+                          <strong>Objective:</strong>{" "}
+                          {datum.objective.toFixed(2)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ),
+              }}
+            />
+
+            {/* Render a LineSeries for each policy */}
+            {filteredMetrics.map((metric) => (
+              <LineSeries
+                key={metric.policy}
+                id={metric.policy}
+                name={metric.policy}
+                xScaleType={ScaleType.Linear}
+                yScaleType={ScaleType.Linear}
+                xAccessor="x"
+                yAccessors={["y"]}
+                lineSeriesStyle={{
+                  line: {
+                    strokeWidth: 2, // Aumenta lo spessore della linea
+                  },
+                }}
+                pointStyleAccessor={(datum) => {
+                  // Controlla se il punto è (0, 0) e nascondilo
+                  if (datum.x === 0) {
+                    return {
+                      radius: 0,
+                    };
+                  }
+                  return {
+                    visible: true, // Mostra gli altri punti
+                    radius: 3,
+                    strokeWidth: 6,
+                  };
+                }}
+                data={[
+                  { x: 0, y: 0, policy: metric.policy }, // Origine (dati neutri)
+                  { x: metric.time, y: metric.cost, ...metric }, // Punto finale (dati completi)
+                ]}
               />
-            }
-            isOpen={isPopoverOpen}
-            closePopover={() => setIsPopoverOpen(false)}
+            ))}
+
+            <Axis
+              id="bottom-axis"
+              position={Position.Bottom}
+              title="Time"
+              showGridLines
+            />
+            <Axis
+              id="left-axis"
+              position={Position.Left}
+              title="Monetary Cost"
+              showGridLines
+            />
+          </Chart>
+        ) : (
+          <p>No policies selected for display.</p>
+        )}
+      </EuiFlexItem>
+
+      <EuiFlexItem grow={false}>
+        <EuiPopover
+          button={
+            <EuiIcon
+              type="list"
+              size="l"
+              onClick={() => setIsPopoverOpen((isOpen) => !isOpen)}
+              aria-label="Select policies"
+              style={{ cursor: "pointer" }}
+            />
+          }
+          isOpen={isPopoverOpen}
+          closePopover={() => setIsPopoverOpen(false)}
+        >
+          <EuiSelectable
+            options={options}
+            onChange={handleSelectionChange}
+            searchable
+            height={300}
           >
-            <EuiSelectable
-              options={options}
-              onChange={handleSelectionChange}
-              searchable
-              height={300}
-            >
-              {(list, search) => (
-                <>
-                  {search}
-                  {list}
-                </>
-              )}
-            </EuiSelectable>
-          </EuiPopover>
-        </EuiFlexItem>
-      </EuiFlexGroup>
+            {(list, search) => (
+              <>
+                {search}
+                {list}
+              </>
+            )}
+          </EuiSelectable>
+        </EuiPopover>
+      </EuiFlexItem>
+    </EuiFlexGroup>
   );
 };
