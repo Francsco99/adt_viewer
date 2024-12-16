@@ -129,7 +129,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     },
     {
       field: "cost",
-      name: "Cost",
+      name: "Monetary Cost",
       sortable: true,
     },
     {
