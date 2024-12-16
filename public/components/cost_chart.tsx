@@ -38,33 +38,59 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
     defenderGray: { x: number; y: number }[];
   } | null>(null);
 
+  // Weights for the objective function
+  const wt = 0.5; // Weight for time
+  const wc = 0.5; // Weight for cost
+
   useEffect(() => {
     if (states && actions) {
       const attackerData: { x: number; y: number }[] = [];
       const defenderData: { x: number; y: number }[] = [];
 
       let cumulativeAttackerCost = 0;
+      let cumulativeAttackerTime = 0;
       let cumulativeDefenderCost = 0;
+      let cumulativeDefenderTime = 0;
 
-      // Calculate cumulative costs
+      // Calculate cumulative costs and times
       states.forEach((state) => {
         const stateActions = actions.filter((action) =>
           state.actions_id.includes(action.id)
         );
 
+        // Calculate cumulative costs and times for the attacker
         const attackerCost = stateActions
           .filter((action) => action.agent === "attacker")
           .reduce((sum, action) => sum + action.cost, 0);
 
+        const attackerTime = stateActions
+          .filter((action) => action.agent === "attacker")
+          .reduce((sum, action) => sum + action.time, 0);
+
+        // Calculate cumulative costs and times for the defender
         const defenderCost = stateActions
           .filter((action) => action.agent === "defender")
           .reduce((sum, action) => sum + action.cost, 0);
 
-        cumulativeAttackerCost += attackerCost;
-        cumulativeDefenderCost += defenderCost;
+        const defenderTime = stateActions
+          .filter((action) => action.agent === "defender")
+          .reduce((sum, action) => sum + action.time, 0);
 
-        attackerData.push({ x: state.state_id, y: cumulativeAttackerCost });
-        defenderData.push({ x: state.state_id, y: cumulativeDefenderCost });
+        // Update cumulative values
+        cumulativeAttackerCost += attackerCost;
+        cumulativeAttackerTime += attackerTime;
+        cumulativeDefenderCost += defenderCost;
+        cumulativeDefenderTime += defenderTime;
+
+        // Compute the objective function
+        const attackerObjective =
+          wt * cumulativeAttackerTime + wc * cumulativeAttackerCost;
+        const defenderObjective =
+          wt * cumulativeDefenderTime + wc * cumulativeDefenderCost;
+
+        // Push data for the chart
+        attackerData.push({ x: state.state_id, y: attackerObjective });
+        defenderData.push({ x: state.state_id, y: defenderObjective });
       });
 
       // Split data into colored and gray segments
@@ -105,10 +131,10 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
       <Chart>
         <Settings showLegend={true} legendPosition={Position.Top} />
 
-        {/* Defender cumulative and future costs */}
+        {/* Defender cumulative and future objective values */}
         <AreaSeries
           id="Defender Colored Area"
-          name="Defender Cumulative Cost"
+          name="Defender Cumulative Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -119,7 +145,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         />
         <LineSeries
           id="Defender Line"
-          name="Defender Cumulative Cost"
+          name="Defender Cumulative Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -129,7 +155,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         />
         <AreaSeries
           id="Defender Gray Area"
-          name="Defender Future Cost"
+          name="Defender Future Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -140,7 +166,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         />
         <LineSeries
           id="Defender Gray Line"
-          name="Defender Future Cost"
+          name="Defender Future Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -150,10 +176,10 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           hideInLegend
         />
 
-        {/* Attacker cumulative and future costs */}
+        {/* Attacker cumulative and future objective values */}
         <AreaSeries
           id="Attacker Colored Area"
-          name="Attacker Cumulative Cost"
+          name="Attacker Cumulative Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -164,7 +190,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         />
         <LineSeries
           id="Attacker Line"
-          name="Attacker Cumulative Cost"
+          name="Attacker Cumulative Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -174,7 +200,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         />
         <AreaSeries
           id="Attacker Gray Area"
-          name="Attacker Future Cost"
+          name="Attacker Future Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -185,7 +211,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         />
         <LineSeries
           id="Attacker Gray Line"
-          name="Attacker Future Cost"
+          name="Attacker Future Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
@@ -209,7 +235,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         <Axis
           id="left-axis"
           position={Position.Left}
-          title="Cumulative Cost"
+          title="Objective Function Value"
           showGridLines
         />
       </Chart>
