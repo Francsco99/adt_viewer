@@ -12,7 +12,7 @@ import {
 import { useTreeContext } from "./tree_context";
 
 interface PolicyManagerProps {
-  policies: {
+  states: {
     state_id: number;
     active_nodes: number[];
     actions_id: number[];
@@ -28,7 +28,7 @@ interface PolicyManagerProps {
 }
 
 export const PolicyManager: React.FC<PolicyManagerProps> = ({
-  policies,
+  states,
   actions,
 }) => {
   const { selectedState, setSelectedState } = useTreeContext();
@@ -40,7 +40,7 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({
 
   return (
     <div>
-      {policies.map((policy, index) => (
+      {states.map((policy, index) => (
         <React.Fragment key={policy.state_id}>
           {/* Azioni che portano al corrente stato */}
           {index > 0 && (
