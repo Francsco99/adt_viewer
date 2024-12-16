@@ -15,6 +15,7 @@ import {
   Position,
 } from "@elastic/charts";
 import "@elastic/charts/dist/theme_only_light.css";
+import { useTreeContext } from "./tree_context";
 
 interface PolicyData {
   policy: string;
@@ -36,6 +37,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
   policiesList,
   actions,
 }) => {
+  const { getColor } = useTreeContext();
   const [policyMetrics, setPolicyMetrics] = useState<PolicyData[]>([]);
   const [selectedPolicies, setSelectedPolicies] =
     useState<string[]>(policiesList);
@@ -133,16 +135,15 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                     }}
                   >
                     {values.map((val, idx) => {
-                      // Cast al tipo PolicyData con controlli extra
                       const datum = val.datum as Partial<PolicyData>;
                       if (
                         !datum ||
                         !datum.policy ||
                         datum.objective === undefined
                       ) {
-                        return null; // Ignora dati incompleti o invalidi
+                        return null;
                       }
-
+  
                       return (
                         <div key={idx}>
                           <strong>Policy:</strong> {datum.policy}
@@ -151,8 +152,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                           <br />
                           <strong>Monetary Cost:</strong> {datum.cost ?? "N/A"}
                           <br />
-                          <strong>Objective:</strong>{" "}
-                          {datum.objective.toFixed(2)}
+                          <strong>Objective:</strong> {datum.objective.toFixed(2)}
                         </div>
                       );
                     })}
@@ -160,9 +160,9 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                 ),
               }}
             />
-
+  
             {/* Render a LineSeries for each policy */}
-            {filteredMetrics.map((metric) => (
+            {filteredMetrics.map((metric, index) => (
               <LineSeries
                 key={metric.policy}
                 id={metric.policy}
@@ -173,29 +173,30 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                 yAccessors={["y"]}
                 lineSeriesStyle={{
                   line: {
-                    strokeWidth: 2, // Aumenta lo spessore della linea
+                    strokeWidth: 2,
+                    stroke: getColor(index),
                   },
                 }}
                 pointStyleAccessor={(datum) => {
-                  // Controlla se il punto è (0, 0) e nascondilo
                   if (datum.x === 0) {
                     return {
                       radius: 0,
                     };
                   }
                   return {
-                    visible: true, // Mostra gli altri punti
+                    visible: true,
                     radius: 3,
                     strokeWidth: 6,
+                    stroke: getColor(index), // Colore bordo
                   };
                 }}
                 data={[
-                  { x: 0, y: 0, policy: metric.policy }, // Origine (dati neutri)
-                  { x: metric.time, y: metric.cost, ...metric }, // Punto finale (dati completi)
+                  { x: 0, y: 0, policy: metric.policy },
+                  { x: metric.time, y: metric.cost, ...metric },
                 ]}
               />
             ))}
-
+  
             <Axis
               id="bottom-axis"
               position={Position.Bottom}
@@ -213,7 +214,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
           <p>No policies selected for display.</p>
         )}
       </EuiFlexItem>
-
+  
       <EuiFlexItem grow={false}>
         <EuiPopover
           button={
@@ -244,5 +245,5 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
         </EuiPopover>
       </EuiFlexItem>
     </EuiFlexGroup>
-  );
+  );  
 };

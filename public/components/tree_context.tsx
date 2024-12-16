@@ -10,6 +10,14 @@ interface TreeContextType {
   setSelectedPolicy: (policy: string) => void; // Function to update selected policy
   states: any[]; // Array of all states
   setStates: (states: any[]) => void; // Function to update the states
+
+  //Colors
+  palette: string[]; // Array of colors
+  getColor: (index: number) => string; // Function to get a color by index
+  defenderColor: string; // Predefined color for defender
+  attackerColor: string; // Predefined color for attacker
+  activeNodeColor: string;
+  selectedNodeColor: string;
 }
 
 // Create a context with an undefined initial value
@@ -24,6 +32,24 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   const [selectedPolicy, setSelectedPolicy] = useState("policy.json"); // State for the selected policy
   const [states, setStates] = useState<any[]>([]); // State for the list of states
 
+  const palette = [
+    "#003f5c",
+    "#2f4b7c",
+    "#665191",
+    "#a05195",
+    "#d45087",
+    "#f95d6a",
+    "#ff7c43",
+    "#ffa600",
+    "#7cb518"
+  ];
+
+  const getColor = (index: number) => palette[index % palette.length];
+  const defenderColor = palette[0]; 
+  const attackerColor = palette[palette.length - 4]; 
+  const activeNodeColor = palette[palette.length -2];
+  const selectedNodeColor = palette[palette.length -1];
+
   return (
     <TreeContext.Provider
       value={{
@@ -35,6 +61,12 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
         setSelectedPolicy, // Provide function to update the selected policy
         states, // Provide the list of states
         setStates, // Provide function to update the list of states
+        palette, // Provide the palette
+        getColor, // Provide the helper function to get colors by index
+        defenderColor, // Provide predefined defender color
+        attackerColor, // Provide predefined attacker color
+        activeNodeColor,
+        selectedNodeColor,
       }}
     >
       {children} {/* Render the child components */}

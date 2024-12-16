@@ -30,7 +30,7 @@ interface CostChartProps {
 }
 
 export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
-  const { selectedState } = useTreeContext(); // Get the selected state from context
+  const { selectedState, defenderColor, attackerColor } = useTreeContext(); // Get the selected state from context
   const [data, setData] = useState<{
     attackerColored: { x: number; y: number }[];
     attackerGray: { x: number; y: number }[];
@@ -130,7 +130,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
     <div style={{ height: "400px" }}>
       <Chart>
         <Settings showLegend={true} legendPosition={Position.Top} />
-
+  
         {/* Defender cumulative and future objective values */}
         <AreaSeries
           id="Defender Colored Area"
@@ -140,7 +140,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.defenderColored}
-          color="rgba(0, 0, 255, 0.2)"
+          color={`${defenderColor}20`} // Trasparente
           hideInLegend
         />
         <LineSeries
@@ -151,7 +151,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.defenderColored}
-          color="blue"
+          color={defenderColor} // Primo colore
         />
         <AreaSeries
           id="Defender Gray Area"
@@ -161,7 +161,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.defenderGray}
-          color="rgba(128, 128, 128, 0.2)"
+          color="rgba(128, 128, 128, 0.2)" // Grigio
           hideInLegend
         />
         <LineSeries
@@ -175,7 +175,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           color="gray"
           hideInLegend
         />
-
+  
         {/* Attacker cumulative and future objective values */}
         <AreaSeries
           id="Attacker Colored Area"
@@ -185,7 +185,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.attackerColored}
-          color="rgba(255, 0, 0, 0.2)"
+          color={`${attackerColor}20`} // Trasparente
           hideInLegend
         />
         <LineSeries
@@ -196,7 +196,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.attackerColored}
-          color="red"
+          color={attackerColor} // Ultimo colore
         />
         <AreaSeries
           id="Attacker Gray Area"
@@ -206,7 +206,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.attackerGray}
-          color="rgba(128, 128, 128, 0.2)"
+          color="rgba(128, 128, 128, 0.2)" // Grigio
           hideInLegend
         />
         <LineSeries
@@ -220,7 +220,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           color="gray"
           hideInLegend
         />
-
+  
         {/* Axes */}
         <Axis
           id="bottom-axis"
@@ -236,9 +236,12 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           id="left-axis"
           position={Position.Left}
           title="Objective Function Value"
-          showGridLines
+          gridLine={{
+            visible : true,
+          }}
         />
       </Chart>
     </div>
   );
+  
 };

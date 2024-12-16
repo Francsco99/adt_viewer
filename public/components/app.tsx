@@ -27,10 +27,9 @@ import { TreeStateNavigator } from "./tree_states_navigator";
 import { ActionsManager } from "./actions_manager";
 import { Toolbar } from "./toolbar";
 import { CostChart } from "./cost_chart";
-import { PolicyManager } from "./policy_manager";
+import { StatesVisualizer } from "./states_visualizer";
 import { PolicyEditor } from "./policy_editor";
 import { PolicyComparisonChart } from "./policy_comparison_chart";
-import { ActiveNodeViewer } from "./active_node_viewer";
 
 interface AdtViewerAppDeps {
   basename: string;
@@ -210,11 +209,11 @@ export const AdtViewerApp = ({
                         ),
                       },
                       {
-                        id: "PolicyManagerTab",
-                        name: "Policy Manager",
+                        id: "StatesVisualizerTab",
+                        name: "States Visualizer",
                         content: (
                           <div style={{padding: "16px"}}>
-                              <PolicyManager actions={actions} states ={states}/>
+                              <StatesVisualizer actions={actions} states ={states}/>
                           </div>
                         )
                       }

@@ -26,7 +26,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null); // Reference to the container div
   const svgRef = useRef<SVGSVGElement | null>(null); // Reference to the SVG element
   const gRef = useRef<SVGGElement | null>(null); // Reference to the group element
-  const { selectedNodes, setSelectedNodes } = useTreeContext(); // Context for selected nodes
+  const { selectedNodes, setSelectedNodes, activeNodeColor, selectedNodeColor } = useTreeContext(); // Context for selected nodes
 
   const zoomBehavior = useRef<ZoomBehavior<SVGSVGElement, unknown>>(); // Zoom behavior
   const [dimensions, setDimensions] = useState<{
@@ -87,7 +87,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .data(root.links())
       .enter()
       .append("line")
-      .attr("stroke", "#ccc")
+      .attr("stroke", "gray")
       .attr("stroke-width", 2)
       .attr("x1", (d) => d.source.x ?? 0)
       .attr("y1", (d) => d.source.y ?? 0)
@@ -118,12 +118,12 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .append("ellipse")
       .attr("rx", 40)
       .attr("ry", 30)
-      .attr("fill", (d, i) => (activeNodes[i] === 1 ? "pink" : "white")) // Active node color
+      .attr("fill", (d, i) => (activeNodes[i] === 1 ? activeNodeColor : "white")) // Active node color
       .attr("stroke", (d) =>
-        selectedNodes.some((node) => node.data.id === d.data.id) ? "red" : "red"
+        selectedNodes.some((node) => node.data.id === d.data.id) ? selectedNodeColor : "black"
       )
       .attr("stroke-width", (d) =>
-        selectedNodes.some((node) => node.data.id === d.data.id) ? 5 : 3
+        selectedNodes.some((node) => node.data.id === d.data.id) ? 6 : 3
       );
 
     // Add labels for nodes

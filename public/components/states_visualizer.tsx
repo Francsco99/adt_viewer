@@ -11,7 +11,7 @@ import {
 } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
 
-interface PolicyManagerProps {
+interface StatesVisualizerProps {
   states: {
     state_id: number;
     active_nodes: number[];
@@ -27,7 +27,7 @@ interface PolicyManagerProps {
   }[];
 }
 
-export const PolicyManager: React.FC<PolicyManagerProps> = ({
+export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
   states,
   actions,
 }) => {
@@ -51,13 +51,14 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({
                   <EuiFlexGroup
                     key={actionIndex}
                     alignItems="center"
-                    gutterSize="m"
+                    justifyContent="center" // Centra orizzontalmente il contenuto
+                    gutterSize="s" // Spaziatura ridotta tra l'icona e il badge
                     style={{ marginLeft: "24px" }}
                   >
                     <EuiFlexItem grow={false}>
                       <EuiIcon type="arrowDown" size="l" />
                     </EuiFlexItem>
-                    <EuiFlexItem>
+                    <EuiFlexItem grow={false}>
                       <EuiToolTip
                         position="top"
                         content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
@@ -78,25 +79,41 @@ export const PolicyManager: React.FC<PolicyManagerProps> = ({
             </React.Fragment>
           )}
 
-          {/* Stato Cliccabile */}
+          {/* Stato Cliccabile con tooltip */}
           <EuiFlexGroup alignItems="center" gutterSize="m">
-            <EuiFlexItem grow={false}>
-              <EuiIcon type="dot" size="xl" color="primary" />
-            </EuiFlexItem>
             <EuiFlexItem>
-              <EuiPanel
-                paddingSize="m"
-                style={{
-                  backgroundColor:
-                    selectedState === policy.state_id ? "#d1eaff" : "#d3e5ff",
-                  cursor: "pointer",
-                }}
-                onClick={() => setSelectedState(policy.state_id)}
+              <EuiToolTip
+                position="left"
+                content={`State ID: ${policy.state_id}`} // Tooltip con ID dello stato
               >
-                <EuiText>
-                  <h3>State {policy.state_id}</h3>
-                </EuiText>
-              </EuiPanel>
+                <EuiPanel
+                  paddingSize="none" // Rimuove il padding interno
+                  style={{
+                    backgroundColor: "white", // Sfondo bianco
+                    border: `2px solid ${
+                      selectedState === policy.state_id ? "#c1121f" : "#669bbc"
+                    }`, // Bordo rosso bordeaux se selezionato, altrimenti blu
+                    cursor: "pointer",
+                    textAlign: "center", // Centra orizzontalmente il testo
+                    display: "flex",
+                    justifyContent: "center", // Centra orizzontalmente il contenuto
+                    alignItems: "center", // Centra verticalmente il contenuto
+                    height: "60px", // Altezza rettangolo
+                  }}
+                  onClick={() => setSelectedState(policy.state_id)}
+                >
+                  <EuiText>
+                    <p
+                      style={{
+                        fontSize: "20px", // Font più grande per il vettore
+                        margin: "0", // Rimuove margini
+                      }}
+                    >
+                      [{policy.active_nodes.join(", ")}] {/* Converte array in stringa con virgole */}
+                    </p>
+                  </EuiText>
+                </EuiPanel>
+              </EuiToolTip>
             </EuiFlexItem>
           </EuiFlexGroup>
           <EuiSpacer size="m" />
