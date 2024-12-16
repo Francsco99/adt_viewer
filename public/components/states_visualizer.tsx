@@ -31,7 +31,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
   states,
   actions,
 }) => {
-  const { selectedState, setSelectedState } = useTreeContext();
+  const { selectedState, setSelectedState, selectedNodeColor } = useTreeContext();
 
   // Funzione per recuperare l'azione dato l'id
   const getActionDetails = (actionId: number) => {
@@ -56,7 +56,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                     style={{ marginLeft: "24px" }}
                   >
                     <EuiFlexItem grow={false}>
-                      <EuiIcon type="arrowDown" size="l" />
+                      <EuiIcon type="sortDown" size="l" />
                     </EuiFlexItem>
                     <EuiFlexItem grow={false}>
                       <EuiToolTip
@@ -91,7 +91,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                   style={{
                     backgroundColor: "white", // Sfondo bianco
                     border: `2px solid ${
-                      selectedState === policy.state_id ? "#c1121f" : "#669bbc"
+                      selectedState === policy.state_id ? selectedNodeColor : "black"
                     }`, // Bordo rosso bordeaux se selezionato, altrimenti blu
                     cursor: "pointer",
                     textAlign: "center", // Centra orizzontalmente il testo
