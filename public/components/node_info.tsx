@@ -12,10 +12,8 @@ interface Node {
   selected: boolean;
 }
 
-export const NodeInfo: React.FC<NodeInfoProps> = ({
-  treeData,
-}) => {
-  const { selectedNodes } = useTreeContext(); // Get selected nodes from context
+export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
+  const { selectedNodes } = useTreeContext(); // Get selected nodes (array of IDs) from context
   const [showAllNodes, setShowAllNodes] = useState(false); // Toggle to show all nodes
   const [pageIndex, setPageIndex] = useState(0); // Current page index
   const [pageSize, setPageSize] = useState(5); // Page size
@@ -30,13 +28,15 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({
     ? treeData.nodes.map((node) => ({
         id: node.id,
         label: node.label,
-        selected: selectedNodes.some((n) => n.data.id === node.id),
+        selected: selectedNodes.includes(node.id), // Check if node is selected
       }))
-    : selectedNodes.map((node) => ({
-        id: node.data.id,
-        label: node.data.label,
-        selected: true,
-      }));
+    : treeData.nodes
+        .filter((node) => selectedNodes.includes(node.id)) // Filter only selected nodes
+        .map((node) => ({
+          id: node.id,
+          label: node.label,
+          selected: true,
+        }));
 
   // Paginate rows based on current page
   const paginatedRows = rows.slice(
