@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 
 // Interface defining the context structure
 interface TreeContextType {
-  selectedNodes: any[]; // Array of selected nodes
-  setSelectedNodes: (nodes: any[]) => void; // Function to update selected nodes
+  selectedNodes: number[]; // Array of selected nodes
+  setSelectedNodes: (nodes: number[]) => void; // Function to update selected nodes
   selectedState: number; // Currently selected state ID
   setSelectedState: (state: number) => void; // Function to update selected state
   selectedPolicy: string; // Currently selected policy name
@@ -27,7 +27,7 @@ const TreeContext = createContext<TreeContextType | undefined>(undefined);
 export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [selectedNodes, setSelectedNodes] = useState<any[]>([]); // State for selected nodes
+  const [selectedNodes, setSelectedNodes] = useState<number[]>([]); // State for selected nodes
   const [selectedState, setSelectedState] = useState(0); // State for the selected state ID
   const [selectedPolicy, setSelectedPolicy] = useState("policy.json"); // State for the selected policy
   const [states, setStates] = useState<any[]>([]); // State for the list of states
@@ -65,8 +65,8 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
         getColor, // Provide the helper function to get colors by index
         defenderColor, // Provide predefined defender color
         attackerColor, // Provide predefined attacker color
-        activeNodeColor,
-        selectedNodeColor,
+        activeNodeColor, // Provide predefined active node color
+        selectedNodeColor, // Provide predefined selected node color
       }}
     >
       {children} {/* Render the child components */}

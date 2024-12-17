@@ -53,9 +53,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   // Update node-specific actions when selectedNodes changes
   useEffect(() => {
     if (selectedNodes && selectedNodes.length > 0) {
-      const nodeIds = selectedNodes.map((node) => node.data.id);
       const relevantActionIds = states.flatMap((state) =>
-        state.action_nodes.some((nodeId) => nodeIds.includes(nodeId))
+        state.action_nodes.some((nodeId) => selectedNodes.includes(nodeId))
           ? state.actions_id
           : []
       );
@@ -205,9 +204,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
       <EuiText>
         <h5>
           {selectedNodes && selectedNodes.length > 0
-            ? `Actions available for Nodes: ${selectedNodes
-                .map((node) => node.data.id)
-                .join(", ")}`
+            ? `Actions available for Nodes: ${selectedNodes.join(", ")}`
             : "No Nodes Selected"}
         </h5>
       </EuiText>

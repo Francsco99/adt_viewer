@@ -103,15 +103,16 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .append("g")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .on("click", (event, d) => {
-        // Toggle node selection on click
-        if (selectedNodes.some((node) => node.data.id === d.data.id)) {
-          setSelectedNodes(
-            selectedNodes.filter((node) => node.data.id !== d.data.id)
-          );
+        const nodeId = d.data.id; // ID del nodo corrente
+        if (selectedNodes.includes(nodeId)) {
+          // Rimuove l'ID selezionato se già presente
+          setSelectedNodes(selectedNodes.filter((id) => id !== nodeId));
         } else {
-          setSelectedNodes([...selectedNodes, d]);
+          // Aggiunge l'ID selezionato
+          setSelectedNodes([...selectedNodes, nodeId]);
         }
       });
+      
 
     // Add ellipses for nodes
     nodesGroup
@@ -120,10 +121,10 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("ry", 30)
       .attr("fill", (d, i) => (activeNodes[i] === 1 ? activeNodeColor : "white")) // Active node color
       .attr("stroke", (d) =>
-        selectedNodes.some((node) => node.data.id === d.data.id) ? selectedNodeColor : "black"
+        selectedNodes.includes(d.data.id) ? selectedNodeColor : "black"
       )
       .attr("stroke-width", (d) =>
-        selectedNodes.some((node) => node.data.id === d.data.id) ? 6 : 3
+        selectedNodes.includes(d.data.id) ? 6 : 3
       );
 
     // Add labels for nodes
@@ -133,10 +134,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("dy", ".35em")
       .attr("font-size", "30px")
       .attr("font-weight", (d) =>
-        selectedNodes.some((node) => node.data.id === d.data.id)
-          ? "bold"
-          : "normal"
-      )
+        selectedNodes.includes(d.data.id) ? "bold" : "normal")
       .attr("fill", "black")
       .text((d) => d.data.id);
 
