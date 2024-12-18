@@ -16,6 +16,7 @@ interface TreeContextType {
   getColor: (index: number) => string; // Function to get a color by index
   defenderColor: string; // Predefined color for defender
   attackerColor: string; // Predefined color for attacker
+  totalColor: string;
   activeNodeColor: string;
   selectedNodeColor: string;
 }
@@ -45,10 +46,11 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   ];
 
   const getColor = (index: number) => palette[index % palette.length];
-  const defenderColor = palette[0]; 
-  const attackerColor = palette[palette.length - 4]; 
-  const activeNodeColor = palette[palette.length -2];
-  const selectedNodeColor = palette[palette.length -1];
+  const defenderColor = palette[1]; 
+  const attackerColor = palette[5]; 
+  const activeNodeColor = palette[7];
+  const totalColor = palette[3];
+  const selectedNodeColor = palette[8];
 
   return (
     <TreeContext.Provider
@@ -65,6 +67,7 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
         getColor, // Provide the helper function to get colors by index
         defenderColor, // Provide predefined defender color
         attackerColor, // Provide predefined attacker color
+        totalColor,
         activeNodeColor, // Provide predefined active node color
         selectedNodeColor, // Provide predefined selected node color
       }}
