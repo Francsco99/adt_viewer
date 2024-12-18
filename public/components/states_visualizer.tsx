@@ -125,6 +125,12 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                       {policy.active_nodes.map((value, idx) => {
                         const isSelected = selectedNodes.includes(idx);
 
+                        // Confronto con il valore dello stato precedente
+                        const prevValue =
+                          index > 0 ? states[index - 1].active_nodes[idx] : null;
+                        const hasChanged =
+                          prevValue !== null && prevValue !== value;
+
                         return (
                           <span key={idx}>
                             <span
@@ -140,16 +146,16 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                                 e.currentTarget.style.color = isSelected
                                   ? selectedNodeColor
                                   : "black";
-                                e.currentTarget.style.fontWeight = isSelected
-                                  ? "bold"
-                                  : "normal";
+                                e.currentTarget.style.fontWeight =
+                                  isSelected || hasChanged ? "bold" : "normal";
                               }}
                               style={{
                                 cursor: "pointer",
                                 color: isSelected
                                   ? selectedNodeColor
                                   : "black",
-                                fontWeight: isSelected ? "bold" : "normal",
+                                fontWeight:
+                                  isSelected || hasChanged ? "bold" : "normal", // Grassetto se selezionato o cambiato
                                 transition:
                                   "color 0.2s ease-in-out, font-weight 0.2s ease-in-out",
                               }}
