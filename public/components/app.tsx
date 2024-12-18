@@ -170,7 +170,7 @@ export const AdtViewerApp = ({
           <EuiPageBody>
             {/* Prima riga */}
             <EuiFlexGroup gutterSize="m">
-              <EuiFlexItem grow={1}>
+              <EuiFlexItem grow={2}>
                 <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Attack Tree</h2>
@@ -232,9 +232,24 @@ export const AdtViewerApp = ({
                   />
                 </EuiPanel>
               </EuiFlexItem>
+            </EuiFlexGroup>
+
+            <div style={{ margin: "8px 0" }}></div>
+
+            {/* Seconda riga */}
+            <EuiFlexGroup gutterSize="m">
 
               <EuiFlexItem grow={1}>
                 <EuiPanel>
+                  <EuiTitle size="m">
+                    <h2>Placeholer</h2>
+                  </EuiTitle>
+                  
+                </EuiPanel>
+              </EuiFlexItem>
+
+              <EuiFlexItem grow={2}>
+              <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Charts</h2>
                   </EuiTitle>
@@ -272,37 +287,6 @@ export const AdtViewerApp = ({
                           </div>
                         )
                     }}
-                  />
-                </EuiPanel>
-              </EuiFlexItem>
-            </EuiFlexGroup>
-
-            <div style={{ margin: "8px 0" }}></div>
-
-            {/* Seconda riga */}
-            <EuiFlexGroup gutterSize="m">
-
-              <EuiFlexItem grow={1}>
-                <EuiPanel>
-                  <EuiTitle size="m">
-                    <h2>Placeholer</h2>
-                  </EuiTitle>
-                  
-                </EuiPanel>
-              </EuiFlexItem>
-
-              <EuiFlexItem grow={2}>
-                <EuiPanel>
-                  <EuiTitle size="m">
-                    <h2>Policy Editor</h2>
-                  </EuiTitle>
-                  <PolicyEditor
-                    notifications={notifications}
-                    selectedPolicy={selectedPolicy || "missing_name.json"}
-                    http={http}
-                    states={states}
-                    actions={actions}
-                    editable={isEditable}
                   />
                 </EuiPanel>
               </EuiFlexItem>
