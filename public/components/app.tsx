@@ -28,8 +28,8 @@ import { ActionsManager } from "./actions_manager";
 import { Toolbar } from "./toolbar";
 import { CostChart } from "./cost_chart";
 import { StatesVisualizer } from "./states_visualizer";
-import { PolicyEditor } from "./policy_editor";
 import { PolicyComparisonChart } from "./policy_comparison_chart";
+import { ActionTable } from "./actions_table";
 
 interface AdtViewerAppDeps {
   basename: string;
@@ -170,7 +170,7 @@ export const AdtViewerApp = ({
           <EuiPageBody>
             {/* Prima riga */}
             <EuiFlexGroup gutterSize="m">
-              <EuiFlexItem grow={2}>
+              <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Attack Tree</h2>
@@ -183,7 +183,7 @@ export const AdtViewerApp = ({
                 </EuiPanel>
               </EuiFlexItem>
 
-              <EuiFlexItem grow={1}>
+              <EuiFlexItem grow={2}>
               <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Tree Manager</h2>
@@ -242,9 +242,9 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Placeholer</h2>
+                    <h2>Policy manager</h2>
                   </EuiTitle>
-                  
+                  <ActionTable actions={actions} states={states}/>
                 </EuiPanel>
               </EuiFlexItem>
 
