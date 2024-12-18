@@ -244,7 +244,7 @@ export const AdtViewerApp = ({
                   <EuiTitle size="m">
                     <h2>Policy manager</h2>
                   </EuiTitle>
-                  <ActionTable actions={actions} states={states}/>
+                  <ActionTable actions={actions} states={states} http={http} notifications={notifications}/>
                 </EuiPanel>
               </EuiFlexItem>
 

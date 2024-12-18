@@ -3,11 +3,12 @@ import {
   EuiBasicTable,
   EuiBadge,
   EuiSpacer,
-  EuiText,
   EuiIcon,
   EuiToolTip,
   EuiSwitch,
+  EuiButton,
 } from "@elastic/eui";
+import { CoreStart } from "../../../../src/core/public";
 
 interface Action {
   id: number;
@@ -27,21 +28,21 @@ interface State {
 interface ActionTableProps {
   actions: Action[];
   states: State[];
+  http: CoreStart["http"];
+  notifications: CoreStart["notifications"];
 }
 
-export const ActionTable: React.FC<ActionTableProps> = ({ actions, states }) => {
+export const ActionTable: React.FC<ActionTableProps> = ({
+  actions,
+  states,
+  http,
+  notifications,
+}) => {
   const [flaggedActions, setFlaggedActions] = useState<number[]>([]);
-  const [showAllActions, setShowAllActions] = useState(false); // Controlla se mostrare tutte le azioni
+  const [showAllActions, setShowAllActions] = useState(false);
 
   // Otteniamo un set di tutti gli ID delle azioni attive nella policy corrente
-  const activeActionIds = new Set(
-    states.flatMap((state) => state.actions_id)
-  );
-
-  // Azioni attive
-  const activeActions = actions.filter((action) =>
-    activeActionIds.has(action.id)
-  );
+  const activeActionIds = new Set(states.flatMap((state) => state.actions_id));
 
   const toggleFlag = (actionId: number) => {
     setFlaggedActions((prev) =>
@@ -49,6 +50,28 @@ export const ActionTable: React.FC<ActionTableProps> = ({ actions, states }) => 
         ? prev.filter((id) => id !== actionId)
         : [...prev, actionId]
     );
+  };
+
+  const handleExport = async () => {
+    try {
+      // Creazione del JSON filtrato
+      const filteredActions = actions.filter(
+        (action) => !flaggedActions.includes(action.id)
+      );
+
+      // Invoca l'API usando http.post
+      await http.post("/api/adt_viewer/export_filtered_actions", {
+        body: JSON.stringify({ actions: filteredActions }),
+      });
+
+      // Mostra un messaggio di successo
+      notifications.toasts.addSuccess("Actions file saved successfully");
+    } catch (error) {
+      // Mostra un messaggio di errore
+      notifications.toasts.addDanger(
+        `Error saving file: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
+    }
   };
 
   const columns = [
@@ -140,8 +163,9 @@ export const ActionTable: React.FC<ActionTableProps> = ({ actions, states }) => 
     return sortedItems;
   };
 
-  // Mostra solo le azioni attive o tutte le azioni, a seconda dello stato `showAllActions`
-  const displayedActions = showAllActions ? actions : activeActions;
+  const displayedActions = showAllActions
+    ? actions
+    : actions.filter((action) => activeActionIds.has(action.id));
 
   const paginatedActions = getSortedItems(displayedActions).slice(
     pageIndex * pageSize,
@@ -160,7 +184,6 @@ export const ActionTable: React.FC<ActionTableProps> = ({ actions, states }) => 
         items={paginatedActions}
         columns={columns}
         rowProps={(item) => {
-          // Evidenziazione righe
           if (flaggedActions.includes(item.id)) {
             return { style: { backgroundColor: "rgba(255, 0, 0, 0.1)" } };
           }
@@ -179,14 +202,7 @@ export const ActionTable: React.FC<ActionTableProps> = ({ actions, states }) => 
         onChange={handleTableChange}
       />
       <EuiSpacer size="m" />
-      <EuiText>
-        <h4>Flagged Actions</h4>
-        {flaggedActions.length > 0 ? (
-          <p>{flaggedActions.join(", ")}</p>
-        ) : (
-          <p>No actions flagged.</p>
-        )}
-      </EuiText>
+      <EuiButton onClick={handleExport}>Save Filtered Actions</EuiButton>
     </div>
   );
 };

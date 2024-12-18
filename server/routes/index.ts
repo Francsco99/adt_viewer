@@ -171,4 +171,48 @@ export function defineRoutes(router: IRouter) {
       }
     }
   );
+
+  /**
+ * Route: /api/adt_viewer/export_filtered_actions
+ * Descrizione: Esporta le azioni filtrate, escludendo quelle flaggate, in un nuovo file.
+ */
+  router.post(
+    {
+      path: '/api/adt_viewer/export_filtered_actions',
+      validate: {
+        body: schema.object({
+          actions: schema.arrayOf(
+            schema.object({
+              id: schema.number(),
+              agent: schema.string(),
+              action: schema.string(),
+              cost: schema.number(),
+              time: schema.number(),
+            })
+          ),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      const { actions } = request.body;
+      const filePath = path.resolve(__dirname, '../data/actions/actions_mod.json');
+  
+      try {
+        // Salva il file JSON fornito dal client
+        await writeJsonFile(filePath, actions);
+  
+        return response.ok({
+          body: {
+            message: 'Filtered actions have been saved successfully.',
+            filePath,
+          },
+        });
+      } catch (error) {
+        return response.internalError({
+          body: 'An error occurred while saving the filtered actions.',
+        });
+      }
+    }
+  );  
+
 }
