@@ -30,35 +30,37 @@ interface CostChartProps {
 }
 
 export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
-  const { selectedState, defenderColor, attackerColor } = useTreeContext(); // Get the selected state from context
+  const { selectedState, defenderColor, attackerColor, totalColor } = useTreeContext();
   const [data, setData] = useState<{
     attackerColored: { x: number; y: number }[];
     attackerGray: { x: number; y: number }[];
     defenderColored: { x: number; y: number }[];
     defenderGray: { x: number; y: number }[];
+    totalColored: { x: number; y: number }[];
+    totalGray: { x: number; y: number }[];
   } | null>(null);
 
-  // Weights for the objective function
-  const wt = 0.5; // Weight for time
-  const wc = 0.5; // Weight for cost
+  // Pesature per la funzione obiettivo
+  const wt = 0.5;
+  const wc = 0.5;
 
   useEffect(() => {
     if (states && actions) {
       const attackerData: { x: number; y: number }[] = [];
       const defenderData: { x: number; y: number }[] = [];
+      const totalData: { x: number; y: number }[] = [];
 
       let cumulativeAttackerCost = 0;
       let cumulativeAttackerTime = 0;
       let cumulativeDefenderCost = 0;
       let cumulativeDefenderTime = 0;
 
-      // Calculate cumulative costs and times
       states.forEach((state) => {
         const stateActions = actions.filter((action) =>
           state.actions_id.includes(action.id)
         );
 
-        // Calculate cumulative costs and times for the attacker
+        // Calcolo cumulativo dei costi e tempi
         const attackerCost = stateActions
           .filter((action) => action.agent === "attacker")
           .reduce((sum, action) => sum + action.cost, 0);
@@ -67,7 +69,6 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           .filter((action) => action.agent === "attacker")
           .reduce((sum, action) => sum + action.time, 0);
 
-        // Calculate cumulative costs and times for the defender
         const defenderCost = stateActions
           .filter((action) => action.agent === "defender")
           .reduce((sum, action) => sum + action.cost, 0);
@@ -76,50 +77,51 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           .filter((action) => action.agent === "defender")
           .reduce((sum, action) => sum + action.time, 0);
 
-        // Update cumulative values
         cumulativeAttackerCost += attackerCost;
         cumulativeAttackerTime += attackerTime;
         cumulativeDefenderCost += defenderCost;
         cumulativeDefenderTime += defenderTime;
 
-        // Compute the objective function
+        // Calcolo della funzione obiettivo
         const attackerObjective =
           wt * cumulativeAttackerTime + wc * cumulativeAttackerCost;
         const defenderObjective =
           wt * cumulativeDefenderTime + wc * cumulativeDefenderCost;
+        const totalObjective = attackerObjective + defenderObjective;
 
-        // Push data for the chart
         attackerData.push({ x: state.state_id, y: attackerObjective });
         defenderData.push({ x: state.state_id, y: defenderObjective });
+        totalData.push({ x: state.state_id, y: totalObjective });
       });
 
-      // Split data into colored and gray segments
-      const attackerColored = attackerData.filter(
-        (point) => point.x <= selectedState
-      );
-      const attackerGray = attackerData.filter(
-        (point) => point.x >= selectedState
-      );
-      const defenderColored = defenderData.filter(
-        (point) => point.x <= selectedState
-      );
-      const defenderGray = defenderData.filter(
-        (point) => point.x >= selectedState
-      );
+      // Divisione dei dati in segmenti colorati e grigi
+      const splitData = (data: { x: number; y: number }[]) => ({
+        colored: data.filter((point) => point.x <= selectedState),
+        gray: data.filter((point) => point.x >= selectedState),
+      });
 
-      // Add boundary points for continuity
-      if (attackerGray.length > 0 && attackerColored.length > 0) {
-        attackerGray.unshift(attackerColored[attackerColored.length - 1]);
-      }
-      if (defenderGray.length > 0 && defenderColored.length > 0) {
-        defenderGray.unshift(defenderColored[defenderColored.length - 1]);
-      }
+      const attackerSplit = splitData(attackerData);
+      const defenderSplit = splitData(defenderData);
+      const totalSplit = splitData(totalData);
+
+      // Aggiunta dei punti di confine
+      const addBoundary = (colored: any[], gray: any[]) => {
+        if (gray.length > 0 && colored.length > 0) {
+          gray.unshift(colored[colored.length - 1]);
+        }
+      };
+
+      addBoundary(attackerSplit.colored, attackerSplit.gray);
+      addBoundary(defenderSplit.colored, defenderSplit.gray);
+      addBoundary(totalSplit.colored, totalSplit.gray);
 
       setData({
-        attackerColored,
-        attackerGray,
-        defenderColored,
-        defenderGray,
+        attackerColored: attackerSplit.colored,
+        attackerGray: attackerSplit.gray,
+        defenderColored: defenderSplit.colored,
+        defenderGray: defenderSplit.gray,
+        totalColored: totalSplit.colored,
+        totalGray: totalSplit.gray,
       });
     }
   }, [states, actions, selectedState]);
@@ -129,75 +131,47 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
   return (
     <div style={{ height: "400px" }}>
       <Chart>
-        <Settings showLegend={true} legendPosition={Position.Top} />
-  
-        {/* Defender cumulative and future objective values */}
-        <AreaSeries
-          id="Defender Colored Area"
-          name="Defender Cumulative Objective"
-          xScaleType={ScaleType.Linear}
-          yScaleType={ScaleType.Linear}
-          xAccessor="x"
-          yAccessors={["y"]}
-          data={data.defenderColored}
-          color={`${defenderColor}20`} // Trasparente
-          hideInLegend
-        />
-        <LineSeries
-          id="Defender Line"
-          name="Defender Cumulative Objective"
-          xScaleType={ScaleType.Linear}
-          yScaleType={ScaleType.Linear}
-          xAccessor="x"
-          yAccessors={["y"]}
-          data={data.defenderColored}
-          color={defenderColor} // Primo colore
-        />
-        <AreaSeries
-          id="Defender Gray Area"
-          name="Defender Future Objective"
-          xScaleType={ScaleType.Linear}
-          yScaleType={ScaleType.Linear}
-          xAccessor="x"
-          yAccessors={["y"]}
-          data={data.defenderGray}
-          color="rgba(128, 128, 128, 0.2)" // Grigio
-          hideInLegend
-        />
-        <LineSeries
-          id="Defender Gray Line"
-          name="Defender Future Objective"
-          xScaleType={ScaleType.Linear}
-          yScaleType={ScaleType.Linear}
-          xAccessor="x"
-          yAccessors={["y"]}
-          data={data.defenderGray}
-          color="gray"
-          hideInLegend
-        />
-  
-        {/* Attacker cumulative and future objective values */}
-        <AreaSeries
-          id="Attacker Colored Area"
-          name="Attacker Cumulative Objective"
-          xScaleType={ScaleType.Linear}
-          yScaleType={ScaleType.Linear}
-          xAccessor="x"
-          yAccessors={["y"]}
-          data={data.attackerColored}
-          color={`${attackerColor}20`} // Trasparente
-          hideInLegend
-        />
-        <LineSeries
-          id="Attacker Line"
-          name="Attacker Cumulative Objective"
-          xScaleType={ScaleType.Linear}
-          yScaleType={ScaleType.Linear}
-          xAccessor="x"
-          yAccessors={["y"]}
-          data={data.attackerColored}
-          color={attackerColor} // Ultimo colore
-        />
+      <Settings
+  showLegend={true}
+  legendPosition={Position.Top}
+  tooltip={{
+    customTooltip: ({ header, values }) => {
+      // Filtra i valori per escludere le AreaSeries
+      const filteredValues = values.filter(
+        (value) =>
+          value.seriesIdentifier.specId !== "Attacker Colored Area" &&
+          value.seriesIdentifier.specId !== "Attacker Gray Area" &&
+          value.seriesIdentifier.specId !== "Defender Colored Area" &&
+          value.seriesIdentifier.specId !== "Defender Gray Area" &&
+          value.seriesIdentifier.specId !== "Total Colored Area" &&
+          value.seriesIdentifier.specId !== "Total Gray Area"
+      );
+
+      return (
+        <div
+        style={{
+          padding: "10px",
+          backgroundColor: "#fff",
+          border: "1px solid #ccc",
+        }}
+        >
+          <div style={{ fontWeight: "bold" }}>{`State: ${header?.value}`}</div>
+          <ul style={{ margin: 0, padding: "4px" }}>
+            {filteredValues.map((value, index) => (
+              <li key={index} style={{ color: value.color }}>
+                {value.seriesIdentifier.specId}:{" "}
+                <strong>{value.value}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    },
+  }}
+/>
+
+
+        {/* Attacker */}
         <AreaSeries
           id="Attacker Gray Area"
           name="Attacker Future Objective"
@@ -206,42 +180,147 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.attackerGray}
-          color="rgba(128, 128, 128, 0.2)" // Grigio
+          color="rgba(128, 128, 128, 0.2)"
           hideInLegend
         />
-        <LineSeries
-          id="Attacker Gray Line"
-          name="Attacker Future Objective"
+        <AreaSeries
+          id="Attacker Colored Area"
+          name="Attacker Objective"
           xScaleType={ScaleType.Linear}
           yScaleType={ScaleType.Linear}
           xAccessor="x"
           yAccessors={["y"]}
-          data={data.attackerGray}
-          color="gray"
+          data={data.attackerColored}
+          color={`${attackerColor}40`}
           hideInLegend
         />
-  
-        {/* Axes */}
-        <Axis
-          id="bottom-axis"
-          position={Position.Bottom}
-          title="State"
-          tickFormat={(value) =>
-            states.map((state) => state.state_id).includes(value as number)
-              ? value
-              : ""
-          }
+        <LineSeries
+          id="Attacker Line"
+          name="Attacker Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.attackerColored}
+          color={attackerColor}
+          lineSeriesStyle={{
+            line:{
+              strokeWidth: 2,
+            },
+            point:{
+              visible: true,
+              radius: 3,
+              fill: attackerColor,
+            }
+          }}
         />
+
+        {/* Defender */}
+        <AreaSeries
+          id="Defender Gray Area"
+          name="Defender Future Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.defenderGray}
+          color="rgba(128, 128, 128, 0.2)"
+          hideInLegend
+        />
+        <AreaSeries
+          id="Defender Colored Area"
+          name="Defender Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.defenderColored}
+          color={`${defenderColor}40`}
+          hideInLegend
+        />
+        <LineSeries
+          id="Defender Line"
+          name="Defender Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.defenderColored}
+          color={defenderColor}
+          lineSeriesStyle={{
+            line:{
+              strokeWidth: 2,
+            },
+            point:{
+              visible: true,
+              radius: 3,
+              fill: defenderColor,
+            }
+          }}
+        />
+
+        {/* Total Objective */}
+        <AreaSeries
+          id="Total Gray Area"
+          name="Total Future Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.totalGray}
+          color="rgba(128, 128, 128, 0.2)"
+          hideInLegend
+        />
+        <AreaSeries
+          id="Total Colored Area"
+          name="Total Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.totalColored}
+          color={`${totalColor}40`}
+          hideInLegend
+        />
+        <LineSeries
+          id="Total Line"
+          name="Total Objective"
+          xScaleType={ScaleType.Linear}
+          yScaleType={ScaleType.Linear}
+          xAccessor="x"
+          yAccessors={["y"]}
+          data={data.totalColored}
+          color= {totalColor}
+          lineSeriesStyle={{
+            line:{
+              strokeWidth: 3,
+            },
+            point:{
+              visible: true,
+              radius: 3,
+              fill: totalColor,
+            }
+          }}
+        />
+
+        {/* Axes */}
+        <Axis 
+          id="bottom-axis" 
+          position={Position.Bottom} 
+          title="State" 
+          gridLine={{
+            visible: true,
+          }}
+          />
         <Axis
           id="left-axis"
           position={Position.Left}
           title="Objective Function Value"
           gridLine={{
-            visible : true,
+            visible: true,
           }}
         />
       </Chart>
     </div>
   );
-  
 };
