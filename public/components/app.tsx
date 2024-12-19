@@ -212,9 +212,15 @@ export const AdtViewerApp = ({
                         id: "StatesVisualizerTab",
                         name: "States Visualizer",
                         content: (
-                          <div style={{padding: "16px"}}>
-                              <StatesVisualizer actions={actions} states ={states}/>
-                          </div>
+                          <div
+            style={{
+              padding: "16px",
+              maxHeight: "350px", // Fixed height for the content
+              overflowY: "auto", // Enable vertical scrolling for content
+            }}
+          >
+            <StatesVisualizer actions={actions} states={states} />
+          </div>
                         )
                       }
                     ]}
