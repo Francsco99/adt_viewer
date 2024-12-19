@@ -184,7 +184,7 @@ export const AdtViewerApp = ({
               </EuiFlexItem>
 
               <EuiFlexItem grow={2}>
-              <EuiPanel>
+              <EuiPanel >
                   <EuiTitle size="m">
                     <h2>Tree Manager</h2>
                   </EuiTitle>
@@ -203,7 +203,7 @@ export const AdtViewerApp = ({
                         id: "actionsManagerTab",
                         name: "Actions Manager",
                         content: (
-                          <div style={{ padding: "16px" }}>
+                          <div style={{ padding: "16px"}}>
                             <ActionsManager states={states} actions={actions} />
                           </div>
                         ),

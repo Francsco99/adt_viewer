@@ -39,7 +39,6 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     setSelectedNodes,
   } = useTreeContext();
 
-  // Handle click on node index
   const handleElementClick = (index: number) => {
     const updatedNodes = selectedNodes.includes(index)
       ? selectedNodes.filter((id) => id !== index)
@@ -47,7 +46,6 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     setSelectedNodes(updatedNodes);
   };
 
-  // Retrieve action details
   const getActionDetails = (actionId: number) =>
     actions.find((action) => action.id === actionId);
 
@@ -65,33 +63,44 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                   alignItems="center"
                   justifyContent="center"
                   gutterSize="s"
-                  style={{ marginLeft: "24px" }}
+                  direction="column"
+                  style={{ marginBottom: "8px"}}
                 >
-                  <EuiFlexItem grow={false}>
-                    <EuiIcon type="sortDown" size="l" />
-                  </EuiFlexItem>
-                  <EuiFlexItem grow={false}>
-                    <EuiToolTip
-                      position="top"
-                      content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
-                    >
-                      <EuiBadge
-                        color={
-                          action?.agent === "attacker" ? "danger" : "success"
-                        }
-                        style={{ cursor: "pointer" }}
+                  <EuiFlexGroup alignItems="center" justifyContent="center" gutterSize="s">
+
+                    {/* Icona sortDown centrata */}
+                    <EuiFlexItem grow={false} style={{ textAlign: "center" }}>
+                      <EuiIcon type="sortDown" size="l" />
+                    </EuiFlexItem>
+
+                    {/* Badge posizionati a sinistra */}
+                    <EuiFlexItem grow={false} style={{ textAlign: "right" }}>
+                      <EuiToolTip
+                        position="top"
+                        content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
                       >
-                        {action?.action || "Unknown Action"}
-                      </EuiBadge>
-                    </EuiToolTip>
-                  </EuiFlexItem>
+                        <EuiBadge
+                          color={
+                            action?.agent === "attacker" ? "danger" : "success"
+                          }
+                          style={{
+                            cursor: "pointer",
+                            display: "inline-block",
+                          }}
+                        >
+                          {action?.action || "Unknown Action"}
+                        </EuiBadge>
+                      </EuiToolTip>
+                    </EuiFlexItem>
+                    
+                  </EuiFlexGroup>
                 </EuiFlexGroup>
               );
             })}
 
           {/* Clickable State Panel */}
-          <EuiFlexGroup alignItems="center" gutterSize="m">
-            <EuiFlexItem>
+          <EuiFlexGroup alignItems="center" justifyContent="center" gutterSize="m">
+            <EuiFlexItem grow={false}>
               <EuiToolTip position="left" content={`State ID: ${policy.state_id}`}>
                 <EuiPanel
                   paddingSize="none"
@@ -108,7 +117,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                     justifyContent: "center",
                     alignItems: "center",
                     height: "60px",
-                    padding: "8px",
+                    width: "300px",
                   }}
                   onClick={() => setSelectedState(policy.state_id)}
                 >
@@ -125,7 +134,6 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                       {policy.active_nodes.map((value, idx) => {
                         const isSelected = selectedNodes.includes(idx);
 
-                        // Confronto con il valore dello stato precedente
                         const prevValue =
                           index > 0 ? states[index - 1].active_nodes[idx] : null;
                         const hasChanged =
@@ -155,14 +163,13 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                                   ? selectedNodeColor
                                   : "black",
                                 fontWeight:
-                                  isSelected || hasChanged ? "bold" : "normal", // Grassetto se selezionato o cambiato
+                                  isSelected || hasChanged ? "bold" : "normal",
                                 transition:
                                   "color 0.2s ease-in-out, font-weight 0.2s ease-in-out",
                               }}
                             >
                               {value}
                             </span>
-                            {/* Static comma */}
                             {idx < policy.active_nodes.length - 1 && ", "}
                           </span>
                         );
