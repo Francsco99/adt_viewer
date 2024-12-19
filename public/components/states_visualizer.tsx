@@ -36,6 +36,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
   states,
   actions,
 }) => {
+  // Context for managing selected state and nodes
   const {
     selectedState,
     setSelectedState,
@@ -44,6 +45,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     setSelectedNodes,
   } = useTreeContext();
 
+  // Toggle node selection
   const handleElementClick = (index: number) => {
     const updatedNodes = selectedNodes.includes(index)
       ? selectedNodes.filter((id) => id !== index)
@@ -51,14 +53,14 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     setSelectedNodes(updatedNodes);
   };
 
+  // Retrieve action details by action ID
   const getActionDetails = (actionId: number) =>
     actions.find((action) => action.id === actionId);
 
-  // Funzione per calcolare i costi cumulativi usando la formula
+  // Calculate cumulative costs for a given state
   const calculateCumulativeCosts = (stateIndex: number) => {
     let totalTimeAttacker = 0;
     let totalCostAttacker = 0;
-
     let totalTimeDefender = 0;
     let totalCostDefender = 0;
 
@@ -76,77 +78,68 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
         }
       });
     }
-    const wt = 0.5;
-    const wc = 0.5;
-    // Formula obiettivo: objective = wt * totalTime + wc * totalCost
-    const attackerObjective =
-      wt * totalTimeAttacker + wc * totalCostAttacker;
-    const defenderObjective =
-      wt * totalTimeDefender + wc * totalCostDefender;
 
-    return { attackerObjective, defenderObjective };
+    const wt = 0.5; // Weight for time
+    const wc = 0.5; // Weight for cost
+    return {
+      attackerObjective: wt * totalTimeAttacker + wc * totalCostAttacker,
+      defenderObjective: wt * totalTimeDefender + wc * totalCostDefender,
+    };
   };
 
   return (
-    <div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+      }}
+    >
       {states.map((policy, index) => {
         const cumulativeCosts = calculateCumulativeCosts(index);
         return (
           <React.Fragment key={policy.state_id}>
-            {/* Actions leading to current state */}
-            {index > 0 &&
-              policy.actions_id.map((actionId, actionIndex) => {
-                const action = getActionDetails(actionId);
-                return (
-                  <EuiFlexGroup
-                    key={actionIndex}
-                    alignItems="center"
-                    justifyContent="center"
-                    gutterSize="s"
-                    direction="column"
-                    style={{ marginBottom: "8px" }}
-                  >
-                    <EuiFlexGroup
-                      alignItems="center"
-                      justifyContent="center"
-                      gutterSize="s"
-                    >
-                      {/* Icona sortDown centrata */}
-                      <EuiFlexItem grow={false} style={{ textAlign: "center" }}>
-                        <EuiIcon type="sortDown" size="l" />
-                      </EuiFlexItem>
-
-                      {/* Badge posizionati a sinistra */}
-                      <EuiFlexItem grow={false} style={{ textAlign: "right" }}>
-                        <EuiToolTip
-                          position="top"
-                          content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
+            {/* Render transition actions and icon for states > 0 */}
+            {index > 0 && (
+              <EuiFlexGroup
+                alignItems="center"
+                gutterSize="m"
+                direction="row"
+                style={{ marginBottom: "8px" }}
+              >
+                <EuiFlexItem grow={false}>
+                  <EuiIcon type="sortDown" size="l" />
+                </EuiFlexItem>
+                <EuiFlexItem grow={false}>
+                  {states[index].actions_id.map((actionId, actionIndex) => {
+                    const action = getActionDetails(actionId);
+                    return (
+                      <EuiToolTip
+                        key={actionIndex}
+                        position="top"
+                        content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
+                      >
+                        <EuiBadge
+                          color={
+                            action?.agent === "attacker" ? "danger" : "success"
+                          }
+                          style={{
+                            cursor: "pointer",
+                            marginRight: "8px",
+                          }}
                         >
-                          <EuiBadge
-                            color={
-                              action?.agent === "attacker" ? "danger" : "success"
-                            }
-                            style={{
-                              cursor: "pointer",
-                              display: "inline-block",
-                            }}
-                          >
-                            {action?.action || "Unknown Action"}
-                          </EuiBadge>
-                        </EuiToolTip>
-                      </EuiFlexItem>
-                    </EuiFlexGroup>
-                  </EuiFlexGroup>
-                );
-              })}
+                          {action?.action || "Unknown Action"}
+                        </EuiBadge>
+                      </EuiToolTip>
+                    );
+                  })}
+                </EuiFlexItem>
+              </EuiFlexGroup>
+            )}
 
-            {/* Clickable State Panel with Costs Table */}
-            <EuiFlexGroup
-              alignItems="center"
-              justifyContent="center"
-              gutterSize="m"
-            >
-              {/* Rectangular state */}
+            {/* Render state panel and costs */}
+            <EuiFlexGroup alignItems="center" gutterSize="m">
               <EuiFlexItem grow={false}>
                 <EuiToolTip position="left" content={`State ID: ${policy.state_id}`}>
                   <EuiPanel
@@ -164,7 +157,6 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                       justifyContent: "center",
                       alignItems: "center",
                       height: "60px",
-                      width: "auto",
                       padding: "8px",
                     }}
                     onClick={() => setSelectedState(policy.state_id)}
@@ -181,7 +173,6 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                         [
                         {policy.active_nodes.map((value, idx) => {
                           const isSelected = selectedNodes.includes(idx);
-
                           const prevValue =
                             index > 0
                               ? states[index - 1].active_nodes[idx]
@@ -230,28 +221,27 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                   </EuiPanel>
                 </EuiToolTip>
               </EuiFlexItem>
-
-              {/* Costs Table */}
               <EuiFlexItem grow={false}>
                 <EuiPanel paddingSize="s" style={{ width: "250px" }}>
                   <EuiTable>
                     <EuiTableBody>
-                      {/* Header row */}
                       <EuiTableRow>
                         <EuiTableHeaderCell>Attacker Cost</EuiTableHeaderCell>
                         <EuiTableHeaderCell>Defender Cost</EuiTableHeaderCell>
                       </EuiTableRow>
-                      {/* Data row */}
                       <EuiTableRow>
-                        <EuiTableRowCell>{cumulativeCosts.attackerObjective}</EuiTableRowCell>
-                        <EuiTableRowCell>{cumulativeCosts.defenderObjective}</EuiTableRowCell>
+                        <EuiTableRowCell>
+                          {cumulativeCosts.attackerObjective}
+                        </EuiTableRowCell>
+                        <EuiTableRowCell>
+                          {cumulativeCosts.defenderObjective}
+                        </EuiTableRowCell>
                       </EuiTableRow>
                     </EuiTableBody>
                   </EuiTable>
                 </EuiPanel>
               </EuiFlexItem>
             </EuiFlexGroup>
-
             <EuiSpacer size="m" />
           </React.Fragment>
         );
