@@ -50,30 +50,54 @@ export const ActionTable: React.FC<ActionTableProps> = ({
         ? prev.filter((id) => id !== actionId)
         : [...prev, actionId]
     );
-  };
+  };   
 
   const handleExport = async () => {
     try {
-      // Creazione del JSON filtrato
+      // Filtra le azioni prima di inviarle
       const filteredActions = actions.filter(
         (action) => !flaggedActions.includes(action.id)
       );
-
-      // Invoca l'API usando http.post
-      await http.post("/api/adt_viewer/export_filtered_actions", {
+  
+      // Invia il JSON al server Python
+      const updatedData = await http.post("http://localhost:5001/receive_json", {
         body: JSON.stringify({ actions: filteredActions }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-
-      // Mostra un messaggio di successo
-      notifications.toasts.addSuccess("Actions file saved successfully");
+  
+      // Controlla se i dati restituiti sono validi
+      if (!updatedData || typeof updatedData !== "object") {
+        throw new Error("Invalid JSON response from Python server");
+      }
+  
+      // Salva il file aggiornato usando l'API del plugin
+      await http.post("/api/adt_viewer/save_actions/updated_actions.json", {
+        body: JSON.stringify(updatedData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      // Notifica di successo
+      notifications.toasts.addSuccess(
+        "Updated actions file saved successfully in server/data/actions"
+      );
     } catch (error) {
-      // Mostra un messaggio di errore
+      // Log dell'errore
+      console.error("Error saving updated actions file:", error);
+  
+      // Notifica di errore
       notifications.toasts.addDanger(
-        `Error saving file: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Error saving updated actions file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   };
 
+  
   const columns = [
     {
       field: "agent",

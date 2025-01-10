@@ -1,0 +1,102 @@
+{
+  "actions": [
+    {
+      "action": "Web Recon",
+      "agent": "attacker",
+      "cost": 5,
+      "id": 0,
+      "time": 1
+    },
+    {
+      "action": "Path Traversal",
+      "agent": "attacker",
+      "cost": 20,
+      "id": 1,
+      "time": 2
+    },
+    {
+      "action": "Get Files",
+      "agent": "attacker",
+      "cost": 30,
+      "id": 2,
+      "time": 2
+    },
+    {
+      "action": "Get Login Data",
+      "agent": "attacker",
+      "cost": 10,
+      "id": 3,
+      "time": 2
+    },
+    {
+      "action": "Buffer Overflow",
+      "agent": "attacker",
+      "cost": 40,
+      "id": 4,
+      "time": 2
+    },
+    {
+      "action": "Exfiltrate Data",
+      "agent": "attacker",
+      "cost": 50,
+      "id": 5,
+      "time": 2
+    },
+    {
+      "action": "Disable CGI Scripts",
+      "agent": "defender",
+      "cost": 45,
+      "id": 6,
+      "time": 1
+    },
+    {
+      "action": "Update Apache",
+      "agent": "defender",
+      "cost": 10,
+      "id": 7,
+      "time": 20
+    },
+    {
+      "action": "Reconfigure Apache",
+      "agent": "defender",
+      "cost": 50,
+      "id": 8,
+      "time": 2
+    },
+    {
+      "action": "Change Files Permissions",
+      "agent": "defender",
+      "cost": 60,
+      "id": 9,
+      "time": 2
+    },
+    {
+      "action": "Encrypt Files",
+      "agent": "defender",
+      "cost": 150,
+      "id": 10,
+      "time": 5
+    },
+    {
+      "action": "Change Credentials",
+      "agent": "defender",
+      "cost": 200,
+      "id": 11,
+      "time": 2
+    },
+    {
+      "action": "Disable SOCKS5 Proxy",
+      "agent": "defender",
+      "cost": 120,
+      "id": 12,
+      "time": 1
+    },
+    {
+      "action": "custom",
+      "agent": "attacker",
+      "cost": 99,
+      "id": 99,
+      "time": 99
+    }
+  ]
+}

@@ -1,23 +1,9 @@
 [
   {
-    "id": 0,
-    "agent": "attacker",
-    "action": "Web Recon",
-    "cost": 5,
-    "time": 1
-  },
-  {
     "id": 1,
     "agent": "attacker",
     "action": "Path Traversal",
     "cost": 20,
-    "time": 2
-  },
-  {
-    "id": 2,
-    "agent": "attacker",
-    "action": "Get Files",
-    "cost": 30,
     "time": 2
   },
   {

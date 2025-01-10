@@ -43,7 +43,7 @@ export function defineRoutes(router: IRouter) {
       validate: false,
     },
     async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/tree/tree.json');
+      const filePath = path.resolve(__dirname, '../data/tree/adt_nuovo.json');
       try {
         const treeData = await readJsonFile(filePath);
         return response.ok({ body: treeData });
@@ -214,5 +214,46 @@ export function defineRoutes(router: IRouter) {
       }
     }
   );  
+
+  /**
+ * Route: /api/adt_viewer/save_actions/{filename}
+ * Descrizione: Salva un file JSON specifico nella directory server/data/actions.
+ */
+router.post(
+  {
+    path: '/api/adt_viewer/save_actions/{filename}',
+    validate: {
+      params: schema.object({
+        filename: schema.string({ minLength: 1 }),
+      }),
+      body: schema.object({}, { unknowns: 'allow' }),
+    },
+    options: {
+      body: {
+        parse: true,
+        accepts: 'application/json',
+      },
+    },
+  },
+  async (context, request, response) => {
+    const { filename } = request.params;
+    const safeFileName = path.basename(filename); // Protezione contro il path traversal
+    const filePath = path.resolve(__dirname, '../data/actions', safeFileName); // Salva nella directory server/data/actions
+
+    try {
+      // Salva i dati JSON nel file specificato
+      await writeJsonFile(filePath, request.body);
+
+      return response.ok({
+        body: { message: `File saved as ${safeFileName}` },
+      });
+    } catch (error) {
+      return response.internalError({
+        body: 'An error occurred while saving the file.',
+      });
+    }
+  }
+);
+
 
 }

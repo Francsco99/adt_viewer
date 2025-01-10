@@ -1,0 +1,312 @@
+{
+    "tree": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Data Exfiltration",
+                "type": "Goal"
+            },
+            {
+                "id": 1,
+                "label": "exfiltrateData",
+                "type": "Action",
+                "action": "exfiltrateData",
+                "cost": 50,
+                "time": 2,
+                "role": "Attacker"
+            },
+            {
+                "id": 2,
+                "label": "Access to MySQL",
+                "type": "Attribute"
+            },
+            {
+                "id": 3,
+                "label": "getLoginData",
+                "type": "Action",
+                "action": "getLoginData",
+                "cost": 10,
+                "time": 2,
+                "role": "Attacker"
+            },
+            {
+                "id": 4,
+                "label": "Access to Sensitive Files",
+                "type": "Attribute"
+            },
+            {
+                "id": 5,
+                "label": "getFiles",
+                "type": "Action",
+                "action": "getFiles",
+                "cost": 30,
+                "time": 2,
+                "role": "Attacker"
+            },
+            {
+                "id": 6,
+                "label": "Misconfigured Apache",
+                "type": "Attribute"
+            },
+            {
+                "id": 7,
+                "label": "Reconfigure Apache",
+                "type": "Action",
+                "action": "reconfigureApache",
+                "cost": 50,
+                "time": 2,
+                "role": "Defender"
+            },
+            {
+                "id": 8,
+                "label": "Access to Reverse Shell",
+                "type": "Attribute"
+            },
+            {
+                "id": 9,
+                "label": "pathTraversal",
+                "type": "Action",
+                "action": "pathTraversal",
+                "cost": 20,
+                "time": 2,
+                "role": "Attacker"
+            },
+            {
+                "id": 10,
+                "label": "Web Recon Succesful",
+                "type": "Attribute"
+            },
+            {
+                "id": 11,
+                "label": "webRecon",
+                "type": "Action",
+                "action": "webRecon",
+                "cost": 5,
+                "time": 1,
+                "role": "Attacker"
+            },
+            {
+                "id": 12,
+                "label": "Webserver Publicly Exposed",
+                "type": "Attribute"
+            },
+            {
+                "id": 13,
+                "label": "CGI scripts enabled",
+                "type": "Attribute"
+            },
+            {
+                "id": 14,
+                "label": "Disable CGI Scripts",
+                "type": "Action",
+                "action": "disableCGIScripts",
+                "cost": 45,
+                "time": 1,
+                "role": "Defender"
+            },
+            {
+                "id": 15,
+                "label": "Vulnerable Apache HTTP Server Version",
+                "type": "Attribute"
+            },
+            {
+                "id": 16,
+                "label": "Update Apache",
+                "type": "Action",
+                "action": "updateApache",
+                "cost": 20,
+                "time": 20,
+                "role": "Defender"
+            },
+            {
+                "id": 17,
+                "label": "Change Files Permissions",
+                "type": "Action",
+                "action": "changeFilePermissions",
+                "cost": 60,
+                "time": 2,
+                "role": "Defender"
+            },
+            {
+                "id": 18,
+                "label": "Unencrypted Files",
+                "type": "Attribute"
+            },
+            {
+                "id": 19,
+                "label": "Encrypt File",
+                "type": "Action",
+                "action": "encryptFile",
+                "cost": 150,
+                "time": 5,
+                "role": "Defender"
+            },
+            {
+                "id": 20,
+                "label": "Change Credentials",
+                "type": "Action",
+                "action": "changeCredentials",
+                "cost": 200,
+                "time": 2,
+                "role": "Defender"
+            },
+            {
+                "id": 21,
+                "label": "Access to Execute Arbitrary Code",
+                "type": "Attribute"
+            },
+            {
+                "id": 22,
+                "label": "bufferOverflow",
+                "type": "Action",
+                "action": "bufferOverflow",
+                "cost": 40,
+                "time": 2,
+                "role": "Attacker"
+            },
+            {
+                "id": 23,
+                "label": "Web Recon Succesful",
+                "type": "Attribute"
+            },
+            {
+                "id": 24,
+                "label": "webRecon",
+                "type": "Action",
+                "action": "webRecon",
+                "cost": 5,
+                "time": 1,
+                "role": "Attacker"
+            },
+            {
+                "id": 25,
+                "label": "Webserver Publicly Exposed",
+                "type": "Attribute"
+            },
+            {
+                "id": 26,
+                "label": "SOCKS5 Proxy Active",
+                "type": "Attribute"
+            },
+            {
+                "id": 27,
+                "label": "Deactivate SOCKS5 proxy",
+                "type": "Action",
+                "action": "deactivateSOCKS5Proxy",
+                "cost": 120,
+                "time": 1,
+                "role": "Defender"
+            }
+        ],
+        "edges": [
+            {
+                "id_source": 0,
+                "id_target": 1
+            },
+            {
+                "id_source": 1,
+                "id_target": 2
+            },
+            {
+                "id_source": 2,
+                "id_target": 3
+            },
+            {
+                "id_source": 3,
+                "id_target": 4
+            },
+            {
+                "id_source": 4,
+                "id_target": 5
+            },
+            {
+                "id_source": 5,
+                "id_target": 6
+            },
+            {
+                "id_source": 6,
+                "id_target": 7
+            },
+            {
+                "id_source": 5,
+                "id_target": 8
+            },
+            {
+                "id_source": 8,
+                "id_target": 9
+            },
+            {
+                "id_source": 9,
+                "id_target": 10
+            },
+            {
+                "id_source": 10,
+                "id_target": 11
+            },
+            {
+                "id_source": 11,
+                "id_target": 12
+            },
+            {
+                "id_source": 9,
+                "id_target": 13
+            },
+            {
+                "id_source": 13,
+                "id_target": 14
+            },
+            {
+                "id_source": 9,
+                "id_target": 15
+            },
+            {
+                "id_source": 15,
+                "id_target": 16
+            },
+            {
+                "id_source": 4,
+                "id_target": 17
+            },
+            {
+                "id_source": 3,
+                "id_target": 18
+            },
+            {
+                "id_source": 18,
+                "id_target": 19
+            },
+            {
+                "id_source": 2,
+                "id_target": 20
+            },
+            {
+                "id_source": 1,
+                "id_target": 21
+            },
+            {
+                "id_source": 21,
+                "id_target": 22
+            },
+            {
+                "id_source": 22,
+                "id_target": 23
+            },
+            {
+                "id_source": 23,
+                "id_target": 24
+            },
+            {
+                "id_source": 24,
+                "id_target": 25
+            },
+            {
+                "id_source": 22,
+                "id_target": 26
+            },
+            {
+                "id_source": 26,
+                "id_target": 27
+            }
+        ]
+    }
+}
