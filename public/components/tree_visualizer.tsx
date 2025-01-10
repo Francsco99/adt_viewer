@@ -7,13 +7,14 @@ import { useTreeContext } from "./tree_context";
 interface TreeNode {
   id: number; // Node ID
   label: string; // Node label
+  role: string;
   children?: TreeNode[]; // Child nodes
 }
 
 // Props for the TreeVisualizer component
 interface TreeVisualizerProps {
   data: {
-    nodes: { id: number; label: string }[]; // Node data
+    nodes: { id: number; label: string; role: string }[]; // Node data
     edges: { id_source: number; id_target: number }[]; // Edge data
   };
   activeNodes?: number[]; // Nodes active in the current state
@@ -26,7 +27,12 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   const containerRef = useRef<HTMLDivElement | null>(null); // Reference to the container div
   const svgRef = useRef<SVGSVGElement | null>(null); // Reference to the SVG element
   const gRef = useRef<SVGGElement | null>(null); // Reference to the group element
-  const { selectedNodes, setSelectedNodes, activeNodeColor, selectedNodeColor } = useTreeContext(); // Context for selected nodes
+  const {
+    selectedNodes,
+    setSelectedNodes,
+    activeNodeColor,
+    selectedNodeColor,
+  } = useTreeContext(); // Context for selected nodes
 
   const zoomBehavior = useRef<ZoomBehavior<SVGSVGElement, unknown>>(); // Zoom behavior
   const [dimensions, setDimensions] = useState<{
@@ -112,20 +118,19 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           setSelectedNodes([...selectedNodes, nodeId]);
         }
       });
-      
 
     // Add ellipses for nodes
     nodesGroup
       .append("ellipse")
       .attr("rx", 40)
       .attr("ry", 30)
-      .attr("fill", (d, i) => (activeNodes[i] === 1 ? activeNodeColor : "white")) // Active node color
+      .attr("fill", (d) =>
+        activeNodes[d.data.id] === 1 ? activeNodeColor : "white"
+      ) // Active node color
       .attr("stroke", (d) =>
         selectedNodes.includes(d.data.id) ? selectedNodeColor : "black"
       )
-      .attr("stroke-width", (d) =>
-        selectedNodes.includes(d.data.id) ? 6 : 3
-      );
+      .attr("stroke-width", (d) => (selectedNodes.includes(d.data.id) ? 6 : 3));
 
     // Add labels for nodes
     nodesGroup
@@ -134,7 +139,8 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("dy", ".35em")
       .attr("font-size", "30px")
       .attr("font-weight", (d) =>
-        selectedNodes.includes(d.data.id) ? "bold" : "normal")
+        selectedNodes.includes(d.data.id) ? "bold" : "normal"
+      )
       .attr("fill", "black")
       .text((d) => d.data.id);
 
@@ -203,7 +209,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
 
 // Function to build hierarchical data structure
 function buildHierarchy(
-  nodes: { id: number; label: string }[],
+  nodes: { id: number; label: string; role: string }[],
   edges: { id_source: number; id_target: number }[]
 ): TreeNode | null {
   const nodeMap: { [key: number]: TreeNode } = {}; // Map to store nodes by ID
