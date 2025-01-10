@@ -17,6 +17,7 @@ import {
   EuiContextMenu,
   EuiTabbedContent,
   EuiToolTip,
+  EuiIcon,
 } from "@elastic/eui";
 
 import { CoreStart } from "../../../../src/core/public";
@@ -50,31 +51,18 @@ export const AdtViewerApp = ({
   const [actions, setActions] = useState([]);
   const [policiesList, setPoliciesList] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [isEditable, setIsEditable] = useState(false);
+  const [treesList, setTreesList] = useState<string[]>([]);
+  const [selectedTree, setSelectedTree] = useState<string | null>(null);
+  const [isPolicyPopoverOpen, setIsPolicyPopoverOpen] = useState(false);
+  const [isTreePopoverOpen, setIsTreePopoverOpen] = useState(false);
 
   useEffect(() => {
-    // Carica i dati dell'albero
-    http
-      .get("/api/adt_viewer/tree")
-      .then((res) => setTreeData(res.tree))
-      .catch((error) =>
-        notifications.toasts.addDanger("Failed to load tree data")
-      );
-
-    // Carica actions.json
-    http
-      .get("/api/adt_viewer/actions")
-      .then((actionsRes) => setActions(actionsRes))
-      .catch((error) =>
-        notifications.toasts.addDanger("Failed to load actions data")
-      );
-
+    // Carica la lista delle policy
     http
       .get("/api/adt_viewer/policies_list")
       .then((res) => {
-        setPoliciesList(res.policies)
-        if(res.policies.includes("policy.json")){
+        setPoliciesList(res.policies);
+        if (res.policies.includes("policy.json")) {
           setSelectedPolicy("policy.json");
           loadPolicy("policy.json");
         }
@@ -82,20 +70,46 @@ export const AdtViewerApp = ({
       .catch((error) =>
         notifications.toasts.addDanger("Failed to load policies list")
       );
+
+    // Carica la lista degli alberi
+    http
+      .get("/api/adt_viewer/trees_list")
+      .then((res) => {
+        setTreesList(res.trees);
+        if (res.trees.length > 0) {
+          setSelectedTree(res.trees[0]); // Seleziona il primo albero di default
+          loadTree(res.trees[0]);
+        }
+      })
+      .catch((error) =>
+        notifications.toasts.addDanger("Failed to load trees list")
+      );
   }, [http, notifications]);
 
   const loadPolicy = (policyName: string) => {
     http
       .get(`/api/adt_viewer/load_policy/${policyName}`)
       .then((res) => {
-        setStates(res.states); // Aggiorna gli stati con i dati della policy selezionata
-        setSelectedPolicy(policyName); // Aggiorna la policy selezionata
-        setIsEditable(res.editable); // Imposta il valore di 'editable'
+        setStates(res.states);
+        setSelectedPolicy(policyName);
         notifications.toasts.addSuccess(`Loaded policy: ${policyName}`);
       })
-      .catch((error) => {
-        notifications.toasts.addDanger(`Failed to load policy: ${policyName}`);
-      });
+      .catch((error) =>
+        notifications.toasts.addDanger(`Failed to load policy: ${policyName}`)
+      );
+  };
+
+  const loadTree = (treeName: string) => {
+    http
+      .get(`/api/adt_viewer/tree/${treeName}`)
+      .then((res) => {
+        setTreeData(res.tree);
+        setSelectedTree(treeName);
+        notifications.toasts.addSuccess(`Loaded tree: ${treeName}`);
+      })
+      .catch((error) =>
+        notifications.toasts.addDanger(`Failed to load tree: ${treeName}`)
+      );
   };
 
   return (
@@ -112,34 +126,27 @@ export const AdtViewerApp = ({
               />
             </EuiHeaderSectionItem>
           </EuiHeaderSection>
+
           <EuiHeaderSection grow={false}>
             {/* Selettore delle Policy */}
             <EuiFlexGroup
               alignItems="center"
-              justifyContent="spaceBetween"
-              gutterSize="m"
+              gutterSize="xs"
             >
-              <EuiFlexItem grow={false}>
-                <EuiText>
-                  <span style={{ fontWeight: "bold" }}>
-                    {selectedPolicy ? selectedPolicy : "No policy selected"}
-                  </span>
-                </EuiText>
-              </EuiFlexItem>
               <EuiFlexItem grow={false}>
                 <EuiPopover
                   button={
                     <EuiToolTip position="bottom" content={"Choose policy"}>
-                    <EuiButtonIcon
-                      iconType="list"
-                      size="m"
-                      onClick={() => setIsPopoverOpen((prev) => !prev)}
-                      aria-label="Show Policies"
-                    />
+                      <EuiButtonIcon
+                        iconType="list"
+                        size="m"
+                        onClick={() => setIsPolicyPopoverOpen((prev) => !prev)}
+                        aria-label="Show Policies"
+                      />
                     </EuiToolTip>
                   }
-                  isOpen={isPopoverOpen}
-                  closePopover={() => setIsPopoverOpen(false)}
+                  isOpen={isPolicyPopoverOpen}
+                  closePopover={() => setIsPolicyPopoverOpen(false)}
                 >
                   <EuiContextMenu
                     size="s"
@@ -150,9 +157,8 @@ export const AdtViewerApp = ({
                         items: policiesList.map((policy) => ({
                           name: policy,
                           onClick: () => {
-                            setIsPopoverOpen(false);
+                            setIsPolicyPopoverOpen(false);
                             setSelectedPolicy(policy);
-                            console.log(`Selected policy: ${policy}`);
                             loadPolicy(policy);
                           },
                         })),
@@ -161,8 +167,75 @@ export const AdtViewerApp = ({
                   />
                 </EuiPopover>
               </EuiFlexItem>
+              <EuiFlexItem grow={false}>
+                <EuiText>
+                  <span style={{ fontWeight: "bold" }}>
+                    {selectedPolicy ? selectedPolicy : "No policy selected"}
+                  </span>
+                </EuiText>
+              </EuiFlexItem>
             </EuiFlexGroup>
           </EuiHeaderSection>
+
+          <EuiHeaderSection>
+            <EuiIcon type="empty"></EuiIcon>
+          </EuiHeaderSection>
+
+          <EuiHeaderSection grow={false}>
+            {/* Selettore degli Alberi */}
+            <EuiFlexGroup
+              alignItems="center"
+              gutterSize="xs"
+            >
+              
+              <EuiFlexItem grow={false}>
+                <EuiPopover
+                  button={
+                    <EuiToolTip position="bottom" content={"Choose tree"}>
+                      <EuiButtonIcon
+                        iconType="list"
+                        size="m"
+                        onClick={() => setIsTreePopoverOpen((prev) => !prev)}
+                        aria-label="Show Trees"
+                      />
+                    </EuiToolTip>
+                  }
+                  isOpen={isTreePopoverOpen}
+                  closePopover={() => setIsTreePopoverOpen(false)}
+                >
+                  <EuiContextMenu
+                    size="s"
+                    initialPanelId={0}
+                    panels={[
+                      {
+                        id: 0,
+                        items: treesList.map((tree) => ({
+                          name: tree,
+                          onClick: () => {
+                            setIsTreePopoverOpen(false);
+                            setSelectedTree(tree);
+                            loadTree(tree);
+                          },
+                        })),
+                      },
+                    ]}
+                  />
+                </EuiPopover>
+              </EuiFlexItem>
+              <EuiFlexItem grow={false}>
+                <EuiText>
+                  <span style={{ fontWeight: "bold" }}>
+                    {selectedTree ? selectedTree : "No tree selected"}
+                  </span>
+                </EuiText>
+              </EuiFlexItem>
+            </EuiFlexGroup>
+          </EuiHeaderSection>
+
+          <EuiHeaderSection>
+            <EuiIcon type="empty"></EuiIcon>
+          </EuiHeaderSection>
+          
         </EuiHeader>
 
         {/* Pagina principale */}
@@ -184,7 +257,7 @@ export const AdtViewerApp = ({
               </EuiFlexItem>
 
               <EuiFlexItem grow={2}>
-              <EuiPanel >
+                <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Tree Manager</h2>
                   </EuiTitle>
@@ -193,17 +266,17 @@ export const AdtViewerApp = ({
                       {
                         id: "nodeInfoTab",
                         name: "Node Info",
-                        content:(
-                          <div style={{padding: "16px"}}>
-                            <NodeInfo treeData={treeData}/>
+                        content: (
+                          <div style={{ padding: "16px" }}>
+                            <NodeInfo treeData={treeData} />
                           </div>
-                        )
+                        ),
                       },
                       {
                         id: "actionsManagerTab",
                         name: "Actions Manager",
                         content: (
-                          <div style={{ padding: "16px"}}>
+                          <div style={{ padding: "16px" }}>
                             <ActionsManager states={states} actions={actions} />
                           </div>
                         ),
@@ -213,25 +286,28 @@ export const AdtViewerApp = ({
                         name: "States Visualizer",
                         content: (
                           <div
-            style={{
-              padding: "16px",
-              maxHeight: "350px", // Fixed height for the content
-              overflowY: "auto", // Enable vertical scrolling for content
-            }}
-          >
-            <StatesVisualizer actions={actions} states={states} />
-          </div>
-                        )
-                      }
+                            style={{
+                              padding: "16px",
+                              maxHeight: "350px", // Fixed height for the content
+                              overflowY: "auto", // Enable vertical scrolling for content
+                            }}
+                          >
+                            <StatesVisualizer
+                              actions={actions}
+                              states={states}
+                            />
+                          </div>
+                        ),
+                      },
                     ]}
                     initialSelectedTab={{
                       id: "actionsManagerTab",
-                        name: "Actions Manager",
-                        content: (
-                          <div style={{ padding: "16px" }}>
-                            <ActionsManager states={states} actions={actions} />
-                          </div>
-                        ),
+                      name: "Actions Manager",
+                      content: (
+                        <div style={{ padding: "16px" }}>
+                          <ActionsManager states={states} actions={actions} />
+                        </div>
+                      ),
                     }}
                     autoFocus="selected"
                     size="m"
@@ -244,18 +320,22 @@ export const AdtViewerApp = ({
 
             {/* Seconda riga */}
             <EuiFlexGroup gutterSize="m">
-
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Policy manager</h2>
                   </EuiTitle>
-                  <ActionTable actions={actions} states={states} http={http} notifications={notifications}/>
+                  <ActionTable
+                    actions={actions}
+                    states={states}
+                    http={http}
+                    notifications={notifications}
+                  />
                 </EuiPanel>
               </EuiFlexItem>
 
               <EuiFlexItem grow={2}>
-              <EuiPanel>
+                <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Charts</h2>
                   </EuiTitle>
@@ -265,33 +345,34 @@ export const AdtViewerApp = ({
                         id: "CostChartTab",
                         name: "Cost Chart",
                         content: (
-                          <div style={{padding: "16px"}}>
-                              <CostChart states={states} actions={actions}/>
+                          <div style={{ padding: "16px" }}>
+                            <CostChart states={states} actions={actions} />
                           </div>
-                        )
+                        ),
                       },
                       {
                         id: "PolicyComparisonChart",
                         name: "Policy Comparison",
                         content: (
                           <div>
-                            <PolicyComparisonChart 
-                              http={http} 
+                            <PolicyComparisonChart
+                              http={http}
                               notifications={notifications}
-                              policiesList={policiesList} 
-                              actions={actions}/>
+                              policiesList={policiesList}
+                              actions={actions}
+                            />
                           </div>
-                        )
+                        ),
                       },
                     ]}
                     initialSelectedTab={{
                       id: "CostChartTab",
-                        name: "Cost Chart",
-                        content: (
-                          <div style={{padding: "16px"}}>
-                              <CostChart states={states} actions={actions}/>
-                          </div>
-                        )
+                      name: "Cost Chart",
+                      content: (
+                        <div style={{ padding: "16px" }}>
+                          <CostChart states={states} actions={actions} />
+                        </div>
+                      ),
                     }}
                   />
                 </EuiPanel>

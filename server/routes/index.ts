@@ -56,6 +56,63 @@ export function defineRoutes(router: IRouter) {
   );
 
   /**
+   * Route: /api/adt_viewer/tree/{treeName}
+   * Descrizione: Carica un albero specifico dal file system.
+   */
+  router.get(
+    {
+      path: '/api/adt_viewer/tree/{treeName}',
+      validate: {
+        params: schema.object({
+          treeName: schema.string({ minLength: 1 }),
+        }),
+      },
+    },
+    async (context, request, response) => {
+      const { treeName } = request.params;
+      const safeFileName = path.basename(treeName);
+      const filePath = path.resolve(__dirname, '../data/tree', safeFileName);
+
+      try {
+        const treeData = await readJsonFile(filePath);
+        return response.ok({ body: treeData });
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('ENOENT')) {
+          return response.notFound({
+            body: `The requested tree "${treeName}" does not exist.`,
+          });
+        }
+        return response.internalError({
+          body: 'An error occurred while loading the tree.',
+        });
+      }
+    }
+  );
+
+  /**
+   * Route: /api/adt_viewer/trees_list
+   * Descrizione: Restituisce un elenco di file di alberi disponibili.
+   */
+  router.get(
+    {
+      path: '/api/adt_viewer/trees_list',
+      validate: false,
+    },
+    async (context, request, response) => {
+      const directoryPath = path.resolve(__dirname, '../data/tree');
+      try {
+        const files = await fs.readdir(directoryPath);
+        const jsonFiles = files.filter((file) => file.endsWith('.json'));
+        return response.ok({ body: { trees: jsonFiles } });
+      } catch (error) {
+        return response.internalError({
+          body: 'An error occurred while retrieving the trees list.',
+        });
+      }
+    }
+  );
+
+  /**
    * Route: /api/adt_viewer/actions
    * Descrizione: Restituisce i dati delle azioni.
    */
