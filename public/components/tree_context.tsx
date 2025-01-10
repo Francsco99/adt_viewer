@@ -19,6 +19,8 @@ interface TreeContextType {
   totalColor: string;
   activeNodeColor: string;
   selectedNodeColor: string;
+  defenderNodeColor: string;
+  attackerNodeColor: string;
 }
 
 // Create a context with an undefined initial value
@@ -42,7 +44,9 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
     "#f95d6a",
     "#ff7c43",
     "#ffa600",
-    "#7cb518"
+    "#7cb518",
+    "#e63946",
+    "#0466c8",
   ];
 
   const getColor = (index: number) => palette[index % palette.length];
@@ -50,7 +54,9 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   const attackerColor = palette[5]; 
   const activeNodeColor = palette[7];
   const totalColor = palette[3];
-  const selectedNodeColor = palette[8];
+  const attackerNodeColor = palette[9];
+  const defenderNodeColor = palette[8];
+  const selectedNodeColor = palette[10];
 
   return (
     <TreeContext.Provider
@@ -70,6 +76,8 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
         totalColor,
         activeNodeColor, // Provide predefined active node color
         selectedNodeColor, // Provide predefined selected node color
+        attackerNodeColor,
+        defenderNodeColor,
       }}
     >
       {children} {/* Render the child components */}
