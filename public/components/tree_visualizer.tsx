@@ -8,13 +8,14 @@ interface TreeNode {
   id: number; // Node ID
   label: string; // Node label
   role: string;
+  type: string,
   children?: TreeNode[]; // Child nodes
 }
 
 // Props for the TreeVisualizer component
 interface TreeVisualizerProps {
   data: {
-    nodes: { id: number; label: string; role: string }[]; // Node data
+    nodes: { id: number; label: string; role: string; type: string }[]; // Node data
     edges: { id_source: number; id_target: number }[]; // Edge data
   };
   activeNodes?: number[]; // Nodes active in the current state
@@ -32,6 +33,8 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
     setSelectedNodes,
     activeNodeColor,
     selectedNodeColor,
+    defenderNodeColor,
+    attackerNodeColor,
   } = useTreeContext(); // Context for selected nodes
 
   const zoomBehavior = useRef<ZoomBehavior<SVGSVGElement, unknown>>(); // Zoom behavior
@@ -89,16 +92,19 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
 
     // Draw links (edges)
     g.append("g")
-      .selectAll("line")
-      .data(root.links())
-      .enter()
-      .append("line")
-      .attr("stroke", "gray")
-      .attr("stroke-width", 2)
-      .attr("x1", (d) => d.source.x ?? 0)
-      .attr("y1", (d) => d.source.y ?? 0)
-      .attr("x2", (d) => d.target.x ?? 0)
-      .attr("y2", (d) => d.target.y ?? 0);
+    .selectAll("line")
+    .data(root.links())
+    .enter()
+    .append("line")
+    .attr("stroke", "gray")
+    .attr("stroke-width", 2)
+    .attr("stroke-dasharray", (d) =>
+      d.target.data.role === "Defender" ? "5,5" : null
+    ) // Dashed line for Defender target nodes
+    .attr("x1", (d) => d.source.x ?? 0)
+    .attr("y1", (d) => d.source.y ?? 0)
+    .attr("x2", (d) => d.target.x ?? 0)
+    .attr("y2", (d) => d.target.y ?? 0);
 
     // Draw nodes
     const nodesGroup = g
@@ -119,18 +125,43 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
         }
       });
 
-    // Add ellipses for nodes
-    nodesGroup
-      .append("ellipse")
-      .attr("rx", 40)
-      .attr("ry", 30)
-      .attr("fill", (d) =>
-        activeNodes[d.data.id] === 1 ? activeNodeColor : "white"
-      ) // Active node color
-      .attr("stroke", (d) =>
-        selectedNodes.includes(d.data.id) ? selectedNodeColor : "black"
-      )
-      .attr("stroke-width", (d) => (selectedNodes.includes(d.data.id) ? 6 : 3));
+    // Add shapes for nodes
+    nodesGroup.each(function (d) {
+      const group = select(this);
+      if (d.data.role === "Defender") {
+        // Draw rectangle for Defender nodes
+        group
+          .append("rect")
+          .attr("width", 80)
+          .attr("height", 50)
+          .attr("x", -40)
+          .attr("y", -25)
+          .attr(
+            "fill",
+            activeNodes[d.data.id] === 1 ? activeNodeColor : "white"
+          )
+          .attr(
+            "stroke",
+            selectedNodes.includes(d.data.id) ? selectedNodeColor : defenderNodeColor
+          )
+          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4);
+      } else {
+        // Draw ellipse for other nodes
+        group
+          .append("ellipse")
+          .attr("rx", 40)
+          .attr("ry", 30)
+          .attr(
+            "fill",
+            activeNodes[d.data.id] === 1 ? activeNodeColor : "white"
+          )
+          .attr(
+            "stroke",
+            selectedNodes.includes(d.data.id) ? selectedNodeColor : attackerNodeColor
+          )
+          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4);
+      }
+    });
 
     // Add labels for nodes
     nodesGroup
@@ -209,7 +240,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
 
 // Function to build hierarchical data structure
 function buildHierarchy(
-  nodes: { id: number; label: string; role: string }[],
+  nodes: { id: number; label: string; role: string; type: string }[],
   edges: { id_source: number; id_target: number }[]
 ): TreeNode | null {
   const nodeMap: { [key: number]: TreeNode } = {}; // Map to store nodes by ID
