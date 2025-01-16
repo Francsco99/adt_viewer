@@ -3,13 +3,15 @@ import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
 
 interface NodeInfoProps {
-  treeData: { nodes: { id: number; label: string }[] } | null; // Allow null for treeData
+  treeData: { nodes: { id: number; label: string; type: string; action?: string; role?: string }[] } | null; // Allow null for treeData
 }
 
 interface Node {
   id: number;
   label: string;
-  selected: boolean;
+  type: string;
+  action?: string;
+  role?: string;
 }
 
 export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
@@ -28,14 +30,18 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
     ? treeData.nodes.map((node) => ({
         id: node.id,
         label: node.label,
-        selected: selectedNodes.includes(node.id), // Check if node is selected
+        type: node.type,
+        action: node.action ?? "", // Default empty string if action is undefined
+        role: node.role ?? "", // Default empty string if role is undefined
       }))
     : treeData.nodes
         .filter((node) => selectedNodes.includes(node.id)) // Filter only selected nodes
         .map((node) => ({
           id: node.id,
           label: node.label,
-          selected: true,
+          type: node.type,
+          action: node.action ?? "",
+          role: node.role ?? "",
         }));
 
   // Paginate rows based on current page
@@ -56,13 +62,25 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
       name: "Label",
     },
     {
-      field: "selected",
-      name: "Selected",
-      render: (isSelected: boolean) => (
-        <EuiBadge color={isSelected ? "success" : "default"}>
-          {isSelected ? "Yes" : "No"}
-        </EuiBadge>
-      ),
+      field: "type",
+      name: "Type",
+    },
+    {
+      field: "action",
+      name: "Action",
+      render: (action: string) => (action ? action : "N/A"), // Render "N/A" for empty actions
+    },
+    {
+      field: "role",
+      name: "Role",
+      render: (role: string) =>
+        role ? (
+          <EuiBadge color={role === "Attacker" ? "danger" : "success"}>
+            {role}
+          </EuiBadge>
+        ) : (
+          "N/A"
+        ), // Render badge or "N/A"
     },
   ];
 
