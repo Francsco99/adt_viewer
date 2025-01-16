@@ -60,7 +60,7 @@ export const ActionTable: React.FC<ActionTableProps> = ({
       );
   
       // Invia il JSON al server Python
-      const updatedData = await http.post("http://localhost:5001/receive_json", {
+      const updatedData = await http.post("http://localhost:5000/receive_json", {
         body: JSON.stringify({ actions: filteredActions }),
         headers: {
           "Content-Type": "application/json",
