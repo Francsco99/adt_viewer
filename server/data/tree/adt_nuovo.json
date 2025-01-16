@@ -159,6 +159,7 @@
                 "id": 22,
                 "label": "bufferOverflow",
                 "type": "Action",
+                "hidden": true,
                 "action": "bufferOverflow",
                 "cost": 40,
                 "time": 2,

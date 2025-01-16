@@ -1,5 +1,5 @@
 import React from "react";
-import { useTreeContext } from "./tree_context";
+import { useTreeContext } from "../tree_context";
 import { TreePathVisualizer } from "./tree_path_visualizer";
 
 // Interfaccia per i dati del grafo

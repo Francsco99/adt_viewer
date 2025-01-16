@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+/*import React, { useState, useEffect } from "react";
 import {
   EuiBasicTable,
   EuiBadge,
@@ -355,3 +355,4 @@ export const PolicyEditor: React.FC<PolicyEditorProps> = ({
     </div>
   );
 };
+*/

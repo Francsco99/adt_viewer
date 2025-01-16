@@ -53,7 +53,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
 
   // Initial zoom and position
   const [zoomTransform, setZoomTransform] = useState(() => {
-    const initialScale = 0.6; // Default scale
+    const initialScale = 0.3; // Default scale
     const initialX = dimensions?.width ? dimensions.width / 2 : 200; // Default X position
     const initialY = dimensions?.height ? dimensions.height / 4 : 70; // Default Y position
     return {
