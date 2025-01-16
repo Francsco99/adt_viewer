@@ -116,14 +116,31 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .on("click", (event, d) => {
         const nodeId = d.data.id; // ID del nodo corrente
-        if (selectedNodes.includes(nodeId)) {
-          // Rimuove l'ID selezionato se già presente
-          setSelectedNodes(selectedNodes.filter((id) => id !== nodeId));
+        const nodeLabel = d.data.label; // Label del nodo corrente
+      
+        // Trova tutti i nodi con la stessa label
+        const nodesWithSameLabel = data.nodes.filter(
+          (node) => node.label === nodeLabel
+        );
+      
+        const nodeIdsWithSameLabel = nodesWithSameLabel.map((node) => node.id);
+      
+        // Verifica quali nodi sono già selezionati
+        const isAlreadySelected = nodeIdsWithSameLabel.every((id) =>
+          selectedNodes.includes(id)
+        );
+      
+        if (isAlreadySelected) {
+          // Se tutti i nodi con la stessa label sono selezionati, rimuovili
+          setSelectedNodes(
+            selectedNodes.filter((id) => !nodeIdsWithSameLabel.includes(id))
+          );
         } else {
-          // Aggiunge l'ID selezionato
-          setSelectedNodes([...selectedNodes, nodeId]);
+          // Altrimenti, aggiungili all'elenco dei selezionati
+          setSelectedNodes([...new Set([...selectedNodes, ...nodeIdsWithSameLabel])]);
         }
       });
+      
 
     // Add shapes for nodes
     nodesGroup.each(function (d) {
