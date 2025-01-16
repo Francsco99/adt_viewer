@@ -1,19 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   EuiBasicTable,
   EuiBadge,
-  EuiSwitch,
   EuiSpacer,
-  EuiText,
+  EuiIcon,
+  EuiToolTip,
+  EuiSwitch,
+  EuiButton,
 } from "@elastic/eui";
-import { useTreeContext } from "./tree_context";
-
-interface TreeState {
-  state_id: number;
-  active_nodes: number[];
-  actions_id: number[];
-  action_nodes: number[];
-}
+import { CoreStart } from "../../../../src/core/public";
 
 interface Action {
   id: number;
@@ -23,94 +18,86 @@ interface Action {
   time: number;
 }
 
-interface TableRow {
-  agent: string;
-  action: string;
-  cost: number;
-  time: number;
+interface State {
+  state_id: number;
+  active_nodes: number[];
+  actions_id: number[];
+  action_nodes: number[];
 }
 
 interface ActionsManagerProps {
-  states: TreeState[];
   actions: Action[];
+  states: State[];
+  http: CoreStart["http"];
+  notifications: CoreStart["notifications"];
 }
 
 export const ActionsManager: React.FC<ActionsManagerProps> = ({
-  states,
   actions,
+  states,
+  http,
+  notifications,
 }) => {
-  const { selectedNodes, selectedState } = useTreeContext(); // Use selectedNodes
+  const [flaggedActions, setFlaggedActions] = useState<number[]>([]);
   const [showAllActions, setShowAllActions] = useState(false);
-  const [nodeActions, setNodeActions] = useState<Action[]>([]);
-  const [stateTransitionActions, setStateTransitionActions] = useState<Action[]>([]);
-  const [nextState, setNextState] = useState<number | null>(null);
 
-  const [pageIndex, setPageIndex] = useState(0); // Pagination state
-  const [pageSize, setPageSize] = useState(5); // Page size state
-  const [sortField, setSortField] = useState<keyof TableRow>("agent"); // Sorting field
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Sorting direction
+  // Otteniamo un set di tutti gli ID delle azioni attive nella policy corrente
+  const activeActionIds = new Set(states.flatMap((state) => state.actions_id));
 
-  // Update node-specific actions when selectedNodes changes
-  useEffect(() => {
-    if (selectedNodes && selectedNodes.length > 0) {
-      const relevantActionIds = states.flatMap((state) =>
-        state.action_nodes.some((nodeId) => selectedNodes.includes(nodeId))
-          ? state.actions_id
-          : []
+  const toggleFlag = (actionId: number) => {
+    setFlaggedActions((prev) =>
+      prev.includes(actionId)
+        ? prev.filter((id) => id !== actionId)
+        : [...prev, actionId]
+    );
+  };   
+
+  const handleExport = async () => {
+    try {
+      // Filtra le azioni prima di inviarle
+      const filteredActions = actions.filter(
+        (action) => !flaggedActions.includes(action.id)
       );
-      const actionsForNodes = actions.filter((action) =>
-        relevantActionIds.includes(action.id)
+  
+      // Invia il JSON al server Python
+      const updatedData = await http.post("http://localhost:5000/receive_json", {
+        body: JSON.stringify({ actions: filteredActions }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      // Controlla se i dati restituiti sono validi
+      if (!updatedData || typeof updatedData !== "object") {
+        throw new Error("Invalid JSON response from Python server");
+      }
+  
+      // Salva il file aggiornato usando l'API del plugin
+      await http.post("/api/adt_viewer/save_actions/updated_actions.json", {
+        body: JSON.stringify(updatedData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      // Notifica di successo
+      notifications.toasts.addSuccess(
+        "Updated actions file saved successfully in server/data/actions"
       );
-      setNodeActions(actionsForNodes);
-    } else {
-      setNodeActions([]);
+    } catch (error) {
+      // Log dell'errore
+      console.error("Error saving updated actions file:", error);
+  
+      // Notifica di errore
+      notifications.toasts.addDanger(
+        `Error saving updated actions file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
-  }, [selectedNodes, states, actions]);
-
-  // Update state transition actions based on selectedState
-  useEffect(() => {
-    if (selectedState !== undefined) {
-      const currentState = states.find(
-        (state) => state.state_id === selectedState
-      );
-      const nextStateObj = states.find(
-        (state) => state.state_id === selectedState + 1
-      );
-
-      if (currentState && nextStateObj) {
-        setNextState(nextStateObj.state_id);
-        const transitionActionIds = nextStateObj.actions_id;
-        const actionsForTransition = actions.filter((action) =>
-          transitionActionIds.includes(action.id)
-        );
-        setStateTransitionActions(actionsForTransition);
-      } else {
-        setNextState(null);
-        setStateTransitionActions([]);
-      }
-    } else {
-      setNextState(null);
-      setStateTransitionActions([]);
-    }
-  }, [selectedState, states, actions]);
-
-  // Sort table items
-  const getSortedItems = (items: TableRow[]) => {
-    return [...items].sort((a, b) => {
-      const first = a[sortField];
-      const second = b[sortField];
-      if (typeof first === "string" && typeof second === "string") {
-        return sortDirection === "asc"
-          ? first.localeCompare(second)
-          : second.localeCompare(first);
-      }
-      if (typeof first === "number" && typeof second === "number") {
-        return sortDirection === "asc" ? first - second : second - first;
-      }
-      return 0;
-    });
   };
 
+  
   const columns = [
     {
       field: "agent",
@@ -136,14 +123,41 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
       name: "Time",
       sortable: true,
     },
+    {
+      field: "flag",
+      name: "Manage",
+      render: (_: any, item: Action) => (
+        <EuiToolTip
+          position="top"
+          content={
+            flaggedActions.includes(item.id)
+              ? "Unflag this action"
+              : "Flag this action"
+          }
+        >
+          <EuiIcon
+            type="flag"
+            color={flaggedActions.includes(item.id) ? "danger" : "subdued"}
+            onClick={() => toggleFlag(item.id)}
+            style={{ cursor: "pointer" }}
+            aria-label={`Flag action ${item.id}`}
+          />
+        </EuiToolTip>
+      ),
+    },
   ];
+
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [sortField, setSortField] = useState<keyof Action>("agent");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const handleTableChange = ({
     page,
     sort,
   }: {
     page?: { index: number; size: number };
-    sort?: { field: keyof TableRow; direction: "asc" | "desc" };
+    sort?: { field: keyof Action; direction: "asc" | "desc" };
   }) => {
     if (sort) {
       setSortField(sort.field);
@@ -155,84 +169,64 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     }
   };
 
-  const visibleNodeActions = getSortedItems(
-    showAllActions
-      ? actions.map((action) => ({
-          agent: action.agent,
-          action: action.action,
-          cost: action.cost,
-          time: action.time,
-        }))
-      : nodeActions.map((action) => ({
-          agent: action.agent,
-          action: action.action,
-          cost: action.cost,
-          time: action.time,
-        }))
-  ).slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
-
-  const visibleStateTransitionActions = getSortedItems(
-    stateTransitionActions.map((action) => ({
-      agent: action.agent,
-      action: action.action,
-      cost: action.cost,
-      time: action.time,
-    }))
-  );
-
-  const paginationNodeActions = showAllActions
-    ? {
-        pageIndex,
-        pageSize,
-        totalItemCount: actions.length,
-        pageSizeOptions: [5, 10, 20],
+  const getSortedItems = (items: Action[]) => {
+    const sortedItems = [...items].sort((a, b) => {
+      const first = a[sortField];
+      const second = b[sortField];
+      if (typeof first === "string" && typeof second === "string") {
+        return sortDirection === "asc"
+          ? first.localeCompare(second)
+          : second.localeCompare(first);
       }
-    : undefined;
+      if (typeof first === "number" && typeof second === "number") {
+        return sortDirection === "asc" ? first - second : second - first;
+      }
+      return 0;
+    });
+
+    return sortedItems;
+  };
+
+  const displayedActions = showAllActions
+    ? actions
+    : actions.filter((action) => activeActionIds.has(action.id));
+
+  const paginatedActions = getSortedItems(displayedActions).slice(
+    pageIndex * pageSize,
+    pageIndex * pageSize + pageSize
+  );
 
   return (
     <div>
       <EuiSwitch
-        label="Show all actions"
+        label={showAllActions ? "Show only active actions" : "Show all actions"}
         checked={showAllActions}
-        onChange={(e) => {
-          setShowAllActions(e.target.checked);
-          setPageIndex(0); // Reset page index
-        }}
+        onChange={(e) => setShowAllActions(e.target.checked)}
       />
       <EuiSpacer size="m" />
-      {/* Table for actions available for selected nodes */}
-      <EuiText>
-        <h5>
-          {selectedNodes && selectedNodes.length > 0
-            ? `Actions available for Nodes: ${selectedNodes.join(", ")}`
-            : "No Nodes Selected"}
-        </h5>
-      </EuiText>
-
-      <EuiBasicTable<TableRow>
-        items={visibleNodeActions}
+      <EuiBasicTable
+        items={paginatedActions}
         columns={columns}
-        tableLayout="auto"
-        sorting={{ sort: { field: sortField, direction: sortDirection } }}
-        onChange={handleTableChange}
-        pagination={paginationNodeActions}
-      />
-      <EuiSpacer size="l" />
-      {/* Table for state transition actions */}
-      <EuiText>
-        <h5>
-          State {selectedState}{" "}
-          {nextState !== null ? `-> State ${nextState}` : ""}
-        </h5>
-      </EuiText>
-      <EuiBasicTable<TableRow>
-        items={visibleStateTransitionActions}
-        columns={columns}
-        tableLayout="auto"
+        rowProps={(item) => {
+          if (flaggedActions.includes(item.id)) {
+            return { style: { backgroundColor: "rgba(255, 0, 0, 0.1)" } };
+          }
+          if (activeActionIds.has(item.id)) {
+            return { style: { backgroundColor: "rgba(0, 128, 0, 0.1)" } };
+          }
+          return {};
+        }}
+        pagination={{
+          pageIndex,
+          pageSize,
+          totalItemCount: displayedActions.length,
+          pageSizeOptions: [5, 10, 20],
+        }}
         sorting={{ sort: { field: sortField, direction: sortDirection } }}
         onChange={handleTableChange}
       />
+      <EuiSpacer size="m" />
+      <EuiButton onClick={handleExport}>Save Filtered Actions</EuiButton>
     </div>
   );
-  //test
 };

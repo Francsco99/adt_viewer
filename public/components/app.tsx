@@ -22,8 +22,8 @@ import {
 
 import { CoreStart } from "../../../../src/core/public";
 import { NavigationPublicPluginStart } from "../../../../src/plugins/navigation/public";
+import { ActionsVisualizer } from "./actions_visualizer";
 import { ActionsManager } from "./actions_manager";
-import { ActionTable } from "./actions_table";
 import { CostChart } from "./cost_chart";
 import { NodeInfo } from "./node_info";
 import { PolicyComparisonChart } from "./policy_comparison_chart";
@@ -281,11 +281,11 @@ export const AdtViewerApp = ({
                         ),
                       },
                       {
-                        id: "actionsManagerTab",
-                        name: "Actions Manager",
+                        id: "ActionsVisualizerTab",
+                        name: "Actions Visualizer",
                         content: (
                           <div style={{ padding: "16px" }}>
-                            <ActionsManager states={states} actions={actions} />
+                            <ActionsVisualizer states={states} actions={actions} />
                           </div>
                         ),
                       },
@@ -309,11 +309,11 @@ export const AdtViewerApp = ({
                       },
                     ]}
                     initialSelectedTab={{
-                      id: "actionsManagerTab",
-                      name: "Actions Manager",
+                      id: "ActionsVisualizerTab",
+                      name: "Actions Visualizer",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <ActionsManager states={states} actions={actions} />
+                          <ActionsVisualizer states={states} actions={actions} />
                         </div>
                       ),
                     }}
@@ -331,9 +331,9 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Policy manager</h2>
+                    <h2>Actions Manager</h2>
                   </EuiTitle>
-                  <ActionTable
+                  <ActionsManager
                     actions={actions}
                     states={states}
                     http={http}

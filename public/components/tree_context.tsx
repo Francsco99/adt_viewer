@@ -60,6 +60,7 @@ export const TreeContextProvider: React.FC<{
         states, // Provide the list of states
         setStates, // Provide function to update the list of states
 
+        // Names of current selected policy and tree files
         selectedPolicy,
         selectedTree,
 
