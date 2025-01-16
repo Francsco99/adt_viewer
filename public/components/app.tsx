@@ -22,15 +22,15 @@ import {
 
 import { CoreStart } from "../../../../src/core/public";
 import { NavigationPublicPluginStart } from "../../../../src/plugins/navigation/public";
-import { TreeContextProvider } from "./tree_context";
-import { NodeInfo } from "./node_info";
-import { TreeStateNavigator } from "./tree_states_navigator";
 import { ActionsManager } from "./actions_manager";
-import { Toolbar } from "./toolbar";
-import { CostChart } from "./cost_chart";
-import { StatesVisualizer } from "./states_visualizer";
-import { PolicyComparisonChart } from "./policy_comparison_chart";
 import { ActionTable } from "./actions_table";
+import { CostChart } from "./cost_chart";
+import { NodeInfo } from "./node_info";
+import { PolicyComparisonChart } from "./policy_comparison_chart";
+import { StatesVisualizer } from "./states_visualizer";
+import { Toolbar } from "./toolbar";
+import { TreeContextProvider } from "./tree_context";
+import { TreeStateNavigator } from "./tree_states_navigator";
 
 interface AdtViewerAppDeps {
   basename: string;
@@ -57,6 +57,14 @@ export const AdtViewerApp = ({
   const [isTreePopoverOpen, setIsTreePopoverOpen] = useState(false);
 
   useEffect(() => {
+    // Carica actions.json
+    http
+      .get("/api/adt_viewer/actions")
+      .then((actionsRes) => setActions(actionsRes))
+      .catch((error) =>
+        notifications.toasts.addDanger("Failed to load actions data")
+      );
+      
     // Carica la lista delle policy
     http
       .get("/api/adt_viewer/policies_list")
@@ -114,7 +122,7 @@ export const AdtViewerApp = ({
 
   return (
     <Router basename={basename}>
-      <TreeContextProvider>
+      <TreeContextProvider selectedPolicy={selectedPolicy} selectedTree={selectedTree}>
         {/* Header */}
         <EuiHeader>
           <EuiHeaderSection grow={true}>

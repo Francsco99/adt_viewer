@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 
 // Interface defining the context structure
 interface TreeContextType {
@@ -6,10 +6,12 @@ interface TreeContextType {
   setSelectedNodes: (nodes: number[]) => void; // Function to update selected nodes
   selectedState: number; // Currently selected state ID
   setSelectedState: (state: number) => void; // Function to update selected state
-  selectedPolicy: string; // Currently selected policy name
-  setSelectedPolicy: (policy: string) => void; // Function to update selected policy
   states: any[]; // Array of all states
   setStates: (states: any[]) => void; // Function to update the states
+
+  // Policy and Tree names, passed from App.tsx
+  selectedPolicy: string | null; // Name of the selected policy
+  selectedTree: string | null; // Name of the selected tree
 
   //Colors
   palette: string[]; // Array of colors
@@ -27,28 +29,16 @@ interface TreeContextType {
 const TreeContext = createContext<TreeContextType | undefined>(undefined);
 
 // Provider component to manage and supply global state
-export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const [selectedNodes, setSelectedNodes] = useState<number[]>([]); // State for selected nodes
-  const [selectedState, setSelectedState] = useState(0); // State for the selected state ID
-  const [selectedPolicy, setSelectedPolicy] = useState("policy.json"); // State for the selected policy
-  const [states, setStates] = useState<any[]>([]); // State for the list of states
+export const TreeContextProvider: React.FC<{
+  children: ReactNode;
+  selectedPolicy: string | null; // Passed down from App.tsx
+  selectedTree: string | null; // Passed down from App.tsx
+}> = ({ children, selectedPolicy, selectedTree }) => {
+  const [states, setStates] = React.useState<any[]>([]);
+  const [selectedNodes, setSelectedNodes] = React.useState<number[]>([]);
+  const [selectedState, setSelectedState] = React.useState<number>(0);
 
-  const palette = [
-    "#003f5c",
-    "#2f4b7c",
-    "#665191",
-    "#a05195",
-    "#d45087",
-    "#f95d6a",
-    "#ff7c43",
-    "#ffa600",
-    "#7cb518",
-    "#e63946",
-    "#0466c8",
-  ];
-
+  const palette = ["#003f5c","#2f4b7c","#665191","#a05195","#d45087","#f95d6a","#ff7c43","#ffa600","#7cb518","#e63946","#0466c8"];
   const getColor = (index: number) => palette[index % palette.length];
   const defenderColor = palette[1]; 
   const attackerColor = palette[5]; 
@@ -58,6 +48,8 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
   const defenderNodeColor = palette[8];
   const selectedNodeColor = palette[10];
 
+  console.log(selectedTree);
+  console.log(selectedPolicy);
   return (
     <TreeContext.Provider
       value={{
@@ -65,17 +57,20 @@ export const TreeContextProvider: React.FC<{ children: ReactNode }> = ({
         setSelectedNodes, // Provide function to update selected nodes
         selectedState, // Provide the current selected state ID
         setSelectedState, // Provide function to update the selected state
-        selectedPolicy, // Provide the current selected policy
-        setSelectedPolicy, // Provide function to update the selected policy
         states, // Provide the list of states
         setStates, // Provide function to update the list of states
-        palette, // Provide the palette
-        getColor, // Provide the helper function to get colors by index
-        defenderColor, // Provide predefined defender color
-        attackerColor, // Provide predefined attacker color
+
+        selectedPolicy,
+        selectedTree,
+
+        //Colors
+        palette, 
+        getColor,
+        defenderColor,
+        attackerColor,
         totalColor,
-        activeNodeColor, // Provide predefined active node color
-        selectedNodeColor, // Provide predefined selected node color
+        activeNodeColor,
+        selectedNodeColor,
         attackerNodeColor,
         defenderNodeColor,
       }}
