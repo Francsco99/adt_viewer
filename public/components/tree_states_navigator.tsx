@@ -13,7 +13,7 @@ interface TreeState {
 // Props for the TreeStateNavigator component
 interface TreeStateNavigatorProps {
   treeData: {
-    nodes: { id: number; label: string }[]; // Node data for the tree
+    nodes: { id: number; label: string; role: string; type: string; hidden?: boolean; }[]; // Node data for the tree
     edges: { id_source: number; id_target: number }[]; // Edges data for the tree
   };
   states: TreeState[]; // Array of tree states
