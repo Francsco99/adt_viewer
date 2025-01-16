@@ -168,6 +168,10 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
         ? defenderNodeColor
         : attackerNodeColor;
 
+        const strokeDashArray =
+      d.data.type === "Action" && d.data.role === "Attacker" ? "15,5" : null; // Dashed border for matching nodes
+
+
       if (d.data.role === "Defender") {
         group
           .append("rect")
@@ -177,7 +181,8 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           .attr("y", -25)
           .attr("fill", fillColor)
           .attr("stroke", strokeColor)
-          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4);
+          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4)
+          .attr("stroke-dasharray",strokeDashArray);
       } else {
         group
           .append("ellipse")
@@ -185,7 +190,8 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           .attr("ry", 30)
           .attr("fill", fillColor)
           .attr("stroke", strokeColor)
-          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4);
+          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4)
+          .attr("stroke-dasharray",strokeDashArray);
       }
     });
 
