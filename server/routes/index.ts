@@ -34,22 +34,23 @@ async function writeJsonFile(filePath: string, data: object): Promise<void> {
 
 export function defineRoutes(router: IRouter) {
   /**
-   * Route: /api/adt_viewer/tree
-   * Descrizione: Restituisce i dati dell'albero degli attacchi.
+   * Route: /api/adt_viewer/trees_list
+   * Descrizione: Restituisce un elenco di file di alberi disponibili.
    */
   router.get(
     {
-      path: '/api/adt_viewer/tree',
+      path: '/api/adt_viewer/trees_list',
       validate: false,
     },
     async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/tree/adt_nuovo.json');
+      const directoryPath = path.resolve(__dirname, '../data/trees');
       try {
-        const treeData = await readJsonFile(filePath);
-        return response.ok({ body: treeData });
+        const files = await fs.readdir(directoryPath);
+        const jsonFiles = files.filter((file) => file.endsWith('.json'));
+        return response.ok({ body: { trees: jsonFiles } });
       } catch (error) {
         return response.internalError({
-          body: 'An error occurred while retrieving the attack tree data.',
+          body: 'An error occurred while retrieving the trees list.',
         });
       }
     }
@@ -71,7 +72,7 @@ export function defineRoutes(router: IRouter) {
     async (context, request, response) => {
       const { treeName } = request.params;
       const safeFileName = path.basename(treeName);
-      const filePath = path.resolve(__dirname, '../data/tree', safeFileName);
+      const filePath = path.resolve(__dirname, '../data/trees', safeFileName);
 
       try {
         const treeData = await readJsonFile(filePath);
@@ -90,45 +91,40 @@ export function defineRoutes(router: IRouter) {
   );
 
   /**
-   * Route: /api/adt_viewer/trees_list
-   * Descrizione: Restituisce un elenco di file di alberi disponibili.
-   */
-  router.get(
+  * Route: /api/adt_viewer/save_tree/{filename}
+  * Descrizione: Salva un file JSON specifico nella directory server/data/trees.
+  */
+  router.post(
     {
-      path: '/api/adt_viewer/trees_list',
-      validate: false,
+      path: '/api/adt_viewer/save_tree/{filename}',
+      validate: {
+        params: schema.object({
+          filename: schema.string({ minLength: 1 }),
+        }),
+        body: schema.object({}, { unknowns: 'allow' }),
+      },
+      options: {
+        body: {
+          parse: true,
+          accepts: 'application/json',
+        },
+      },
     },
     async (context, request, response) => {
-      const directoryPath = path.resolve(__dirname, '../data/tree');
-      try {
-        const files = await fs.readdir(directoryPath);
-        const jsonFiles = files.filter((file) => file.endsWith('.json'));
-        return response.ok({ body: { trees: jsonFiles } });
-      } catch (error) {
-        return response.internalError({
-          body: 'An error occurred while retrieving the trees list.',
-        });
-      }
-    }
-  );
+      const { filename } = request.params;
+      const safeFileName = path.basename(filename); // Protezione contro il path traversal
+      const filePath = path.resolve(__dirname, '../data/trees', safeFileName); // Salva nella directory server/data/actions
 
-  /**
-   * Route: /api/adt_viewer/actions
-   * Descrizione: Restituisce i dati delle azioni.
-   */
-  router.get(
-    {
-      path: '/api/adt_viewer/actions',
-      validate: false,
-    },
-    async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/actions/actions.json');
       try {
-        const actionsData = await readJsonFile(filePath);
-        return response.ok({ body: actionsData });
+        // Salva i dati JSON nel file specificato
+        await writeJsonFile(filePath, request.body);
+
+        return response.ok({
+          body: { message: `File saved as ${safeFileName}` },
+        });
       } catch (error) {
         return response.internalError({
-          body: 'An error occurred while retrieving the actions data.',
+          body: 'An error occurred while saving the file.',
         });
       }
     }
@@ -227,90 +223,6 @@ export function defineRoutes(router: IRouter) {
         });
       }
     }
-  );
-
-  /**
- * Route: /api/adt_viewer/export_filtered_actions
- * Descrizione: Esporta le azioni filtrate, escludendo quelle flaggate, in un nuovo file.
- */
-  router.post(
-    {
-      path: '/api/adt_viewer/export_filtered_actions',
-      validate: {
-        body: schema.object({
-          actions: schema.arrayOf(
-            schema.object({
-              id: schema.number(),
-              agent: schema.string(),
-              action: schema.string(),
-              cost: schema.number(),
-              time: schema.number(),
-            })
-          ),
-        }),
-      },
-    },
-    async (context, request, response) => {
-      const { actions } = request.body;
-      const filePath = path.resolve(__dirname, '../data/actions/actions_mod.json');
-  
-      try {
-        // Salva il file JSON fornito dal client
-        await writeJsonFile(filePath, actions);
-  
-        return response.ok({
-          body: {
-            message: 'Filtered actions have been saved successfully.',
-            filePath,
-          },
-        });
-      } catch (error) {
-        return response.internalError({
-          body: 'An error occurred while saving the filtered actions.',
-        });
-      }
-    }
-  );  
-
-  /**
- * Route: /api/adt_viewer/save_actions/{filename}
- * Descrizione: Salva un file JSON specifico nella directory server/data/actions.
- */
-router.post(
-  {
-    path: '/api/adt_viewer/save_actions/{filename}',
-    validate: {
-      params: schema.object({
-        filename: schema.string({ minLength: 1 }),
-      }),
-      body: schema.object({}, { unknowns: 'allow' }),
-    },
-    options: {
-      body: {
-        parse: true,
-        accepts: 'application/json',
-      },
-    },
-  },
-  async (context, request, response) => {
-    const { filename } = request.params;
-    const safeFileName = path.basename(filename); // Protezione contro il path traversal
-    const filePath = path.resolve(__dirname, '../data/actions', safeFileName); // Salva nella directory server/data/actions
-
-    try {
-      // Salva i dati JSON nel file specificato
-      await writeJsonFile(filePath, request.body);
-
-      return response.ok({
-        body: { message: `File saved as ${safeFileName}` },
-      });
-    } catch (error) {
-      return response.internalError({
-        body: 'An error occurred while saving the file.',
-      });
-    }
-  }
-);
-
+  ); 
 
 }
