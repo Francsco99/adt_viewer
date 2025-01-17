@@ -225,4 +225,26 @@ export function defineRoutes(router: IRouter) {
     }
   ); 
 
+  /**
+   * Route: /api/adt_viewer/actions
+   * Descrizione: Restituisce i dati delle azioni.
+   */
+  router.get(
+    {
+      path: '/api/adt_viewer/actions',
+      validate: false,
+    },
+    async (context, request, response) => {
+      const filePath = path.resolve(__dirname, '../data/actions/actions.json');
+      try {
+        const actionsData = await readJsonFile(filePath);
+        return response.ok({ body: actionsData });
+      } catch (error) {
+        return response.internalError({
+          body: 'An error occurred while retrieving the actions data.',
+        });
+      }
+    }
+  );
+
 }

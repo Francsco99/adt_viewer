@@ -1,0 +1,314 @@
+{
+  "original_name": "adt_nuovo.json",
+  "tree": {
+    "edges": [
+      {
+        "id_source": 0,
+        "id_target": 1
+      },
+      {
+        "id_source": 1,
+        "id_target": 2
+      },
+      {
+        "id_source": 2,
+        "id_target": 3
+      },
+      {
+        "id_source": 3,
+        "id_target": 4
+      },
+      {
+        "id_source": 4,
+        "id_target": 5
+      },
+      {
+        "id_source": 5,
+        "id_target": 6
+      },
+      {
+        "id_source": 6,
+        "id_target": 7
+      },
+      {
+        "id_source": 5,
+        "id_target": 8
+      },
+      {
+        "id_source": 8,
+        "id_target": 9
+      },
+      {
+        "id_source": 9,
+        "id_target": 10
+      },
+      {
+        "id_source": 10,
+        "id_target": 11
+      },
+      {
+        "id_source": 11,
+        "id_target": 12
+      },
+      {
+        "id_source": 9,
+        "id_target": 13
+      },
+      {
+        "id_source": 13,
+        "id_target": 14
+      },
+      {
+        "id_source": 9,
+        "id_target": 15
+      },
+      {
+        "id_source": 15,
+        "id_target": 16
+      },
+      {
+        "id_source": 4,
+        "id_target": 17
+      },
+      {
+        "id_source": 3,
+        "id_target": 18
+      },
+      {
+        "id_source": 18,
+        "id_target": 19
+      },
+      {
+        "id_source": 2,
+        "id_target": 20
+      },
+      {
+        "id_source": 1,
+        "id_target": 21
+      },
+      {
+        "id_source": 21,
+        "id_target": 22
+      },
+      {
+        "id_source": 22,
+        "id_target": 23
+      },
+      {
+        "id_source": 23,
+        "id_target": 24
+      },
+      {
+        "id_source": 24,
+        "id_target": 25
+      },
+      {
+        "id_source": 22,
+        "id_target": 26
+      },
+      {
+        "id_source": 26,
+        "id_target": 27
+      }
+    ],
+    "nodes": [
+      {
+        "id": 0,
+        "label": "Data Exfiltration",
+        "type": "Goal"
+      },
+      {
+        "action": "exfiltrateData",
+        "cost": 50,
+        "id": 1,
+        "label": "exfiltrateData",
+        "role": "Attacker",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 2,
+        "label": "Access to MySQL",
+        "type": "Attribute"
+      },
+      {
+        "action": "getLoginData",
+        "cost": 10,
+        "id": 3,
+        "label": "getLoginData",
+        "role": "Attacker",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 4,
+        "label": "Access to Sensitive Files",
+        "type": "Attribute"
+      },
+      {
+        "action": "getFiles",
+        "cost": 30,
+        "hidden": true,
+        "id": 5,
+        "label": "getFiles",
+        "role": "Attacker",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 6,
+        "label": "Misconfigured Apache",
+        "type": "Attribute"
+      },
+      {
+        "action": "reconfigureApache",
+        "cost": 50,
+        "id": 7,
+        "label": "Reconfigure Apache",
+        "role": "Defender",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 8,
+        "label": "Access to Reverse Shell",
+        "type": "Attribute"
+      },
+      {
+        "action": "pathTraversal",
+        "cost": 20,
+        "id": 9,
+        "label": "pathTraversal",
+        "role": "Attacker",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 10,
+        "label": "Web Recon Succesful",
+        "type": "Attribute"
+      },
+      {
+        "action": "webRecon",
+        "cost": 5,
+        "id": 11,
+        "label": "webRecon",
+        "role": "Attacker",
+        "time": 1,
+        "type": "Action"
+      },
+      {
+        "id": 12,
+        "label": "Webserver Publicly Exposed",
+        "type": "Attribute"
+      },
+      {
+        "id": 13,
+        "label": "CGI scripts enabled",
+        "type": "Attribute"
+      },
+      {
+        "action": "disableCGIScripts",
+        "cost": 45,
+        "id": 14,
+        "label": "Disable CGI Scripts",
+        "role": "Defender",
+        "time": 1,
+        "type": "Action"
+      },
+      {
+        "id": 15,
+        "label": "Vulnerable Apache HTTP Server Version",
+        "type": "Attribute"
+      },
+      {
+        "action": "updateApache",
+        "cost": 20,
+        "id": 16,
+        "label": "Update Apache",
+        "role": "Defender",
+        "time": 20,
+        "type": "Action"
+      },
+      {
+        "action": "changeFilePermissions",
+        "cost": 60,
+        "id": 17,
+        "label": "Change Files Permissions",
+        "role": "Defender",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 18,
+        "label": "Unencrypted Files",
+        "type": "Attribute"
+      },
+      {
+        "action": "encryptFile",
+        "cost": 150,
+        "id": 19,
+        "label": "Encrypt File",
+        "role": "Defender",
+        "time": 5,
+        "type": "Action"
+      },
+      {
+        "action": "changeCredentials",
+        "cost": 200,
+        "id": 20,
+        "label": "Change Credentials",
+        "role": "Defender",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 21,
+        "label": "Access to Execute Arbitrary Code",
+        "type": "Attribute"
+      },
+      {
+        "action": "bufferOverflow",
+        "cost": 40,
+        "id": 22,
+        "label": "bufferOverflow",
+        "role": "Attacker",
+        "time": 2,
+        "type": "Action"
+      },
+      {
+        "id": 23,
+        "label": "Web Recon Succesful",
+        "type": "Attribute"
+      },
+      {
+        "action": "webRecon",
+        "cost": 5,
+        "id": 24,
+        "label": "webRecon",
+        "role": "Attacker",
+        "time": 1,
+        "type": "Action"
+      },
+      {
+        "id": 25,
+        "label": "Webserver Publicly Exposed",
+        "type": "Attribute"
+      },
+      {
+        "id": 26,
+        "label": "SOCKS5 Proxy Active",
+        "type": "Attribute"
+      },
+      {
+        "action": "deactivateSOCKS5Proxy",
+        "cost": 120,
+        "id": 27,
+        "label": "Deactivate SOCKS5 proxy",
+        "role": "Defender",
+        "time": 1,
+        "type": "Action"
+      }
+    ]
+  }
+}

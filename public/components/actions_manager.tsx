@@ -9,72 +9,92 @@ import {
   EuiButton,
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
+import { useTreeContext } from "./tree_context";
 
-interface Action {
+interface TreeNode {
   id: number;
-  agent: string;
-  action: string;
-  cost: number;
-  time: number;
+  label: string;
+  type: string;
+  action?: string;
+  cost?: number;
+  time?: number;
+  role?: string;
 }
 
-interface State {
-  state_id: number;
-  active_nodes: number[];
-  actions_id: number[];
-  action_nodes: number[];
+interface TreeData {
+  nodes: TreeNode[];
+  edges: { id_source: number; id_target: number }[];
 }
 
 interface ActionsManagerProps {
-  actions: Action[];
-  states: State[];
+  treeData: TreeData | null; // Tree data containing nodes and edges
   http: CoreStart["http"];
   notifications: CoreStart["notifications"];
 }
 
 export const ActionsManager: React.FC<ActionsManagerProps> = ({
-  actions,
-  states,
+  treeData,
   http,
   notifications,
 }) => {
-  const [flaggedActions, setFlaggedActions] = useState<number[]>([]);
+  if (!treeData) {
+    return <p>Loading tree data...</p>;
+  }
+  const [flaggedActions, setFlaggedActions] = useState<string[]>([]);
   const [showAllActions, setShowAllActions] = useState(false);
+  const {selectedTree} = useTreeContext();
 
-  // Otteniamo un set di tutti gli ID delle azioni attive nella policy corrente
-  const activeActionIds = new Set(states.flatMap((state) => state.actions_id));
+  // Filtra i nodi di tipo "Action" dal treeData e rimuovi duplicati
+  const actionNodes = Array.from(
+    new Map(
+      treeData.nodes
+        .filter((node) => node.type === "Action")
+        .map((node) => [node.label, node])
+    ).values()
+  );
 
-  const toggleFlag = (actionId: number) => {
+  const toggleFlag = (actionLabel: string) => {
     setFlaggedActions((prev) =>
-      prev.includes(actionId)
-        ? prev.filter((id) => id !== actionId)
-        : [...prev, actionId]
+      prev.includes(actionLabel)
+        ? prev.filter((label) => label !== actionLabel)
+        : [...prev, actionLabel]
     );
-  };   
+  };
 
   const handleExport = async () => {
     try {
-      // Filtra le azioni prima di inviarle
-      const filteredActions = actions.filter(
-        (action) => !flaggedActions.includes(action.id)
-      );
+      // Creazione della struttura JSON con tutti i nodi e gli edge originali
+      const updatedTreeData = {
+        original_name: selectedTree,
+        tree: {
+          nodes: treeData.nodes.map((node) => {
+            // Verifica se il nodo è flaggato (usando la label)
+            if (node.type === "Action" && flaggedActions.includes(node.label)) {
+              return { ...node, hidden: true }; // Aggiunge l'attributo "hidden: true"
+            }
+            return node; // Nodo originale
+          }),
+          edges: treeData.edges,
+        },
+      };
   
       // Invia il JSON al server Python
-      const updatedData = await http.post("http://localhost:5000/receive_json", {
-        body: JSON.stringify({ actions: filteredActions }),
+      const response = await http.post("http://localhost:5002/receive_json", {
+        body: JSON.stringify(updatedTreeData),
         headers: {
           "Content-Type": "application/json",
         },
       });
   
-      // Controlla se i dati restituiti sono validi
-      if (!updatedData || typeof updatedData !== "object") {
-        throw new Error("Invalid JSON response from Python server");
+      if (!response || typeof response !== "object" || !response.file_name) {
+        throw new Error("Invalid response from server: missing file_name");
       }
   
-      // Salva il file aggiornato usando l'API del plugin
-      await http.post("/api/adt_viewer/save_actions/updated_actions.json", {
-        body: JSON.stringify(updatedData),
+      const { file_name, data } = response;
+  
+      // Salva il file con il nome restituito dal server
+      await http.post(`/api/adt_viewer/save_tree/${file_name}`, {
+        body: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
         },
@@ -82,35 +102,31 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   
       // Notifica di successo
       notifications.toasts.addSuccess(
-        "Updated actions file saved successfully in server/data/actions"
+        `File saved successfully as ${file_name} in server/data/trees`
       );
     } catch (error) {
-      // Log dell'errore
-      console.error("Error saving updated actions file:", error);
-  
-      // Notifica di errore
+      console.error("Error saving updated tree data file:", error);
       notifications.toasts.addDanger(
-        `Error saving updated actions file: ${
+        `Error saving updated tree data file: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
-  };
+  };  
 
-  
   const columns = [
     {
-      field: "agent",
-      name: "Agent",
-      render: (agent: string) => (
-        <EuiBadge color={agent === "defender" ? "success" : "danger"}>
-          {agent.charAt(0).toUpperCase() + agent.slice(1)}
+      field: "role",
+      name: "Role",
+      render: (role: string) => (
+        <EuiBadge color={role === "Defender" ? "success" : "danger"}>
+          {role?.charAt(0).toUpperCase() + role?.slice(1)}
         </EuiBadge>
       ),
       sortable: true,
     },
     {
-      field: "action",
+      field: "label",
       name: "Action",
     },
     {
@@ -126,21 +142,21 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     {
       field: "flag",
       name: "Manage",
-      render: (_: any, item: Action) => (
+      render: (_: any, item: TreeNode) => (
         <EuiToolTip
           position="top"
           content={
-            flaggedActions.includes(item.id)
+            flaggedActions.includes(item.label)
               ? "Unflag this action"
               : "Flag this action"
           }
         >
           <EuiIcon
             type="flag"
-            color={flaggedActions.includes(item.id) ? "danger" : "subdued"}
-            onClick={() => toggleFlag(item.id)}
+            color={flaggedActions.includes(item.label) ? "danger" : "subdued"}
+            onClick={() => toggleFlag(item.label)}
             style={{ cursor: "pointer" }}
-            aria-label={`Flag action ${item.id}`}
+            aria-label={`Flag action ${item.label}`}
           />
         </EuiToolTip>
       ),
@@ -148,8 +164,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   ];
 
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
-  const [sortField, setSortField] = useState<keyof Action>("agent");
+  const [pageSize, setPageSize] = useState(3);
+  const [sortField, setSortField] = useState<keyof TreeNode>("label");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const handleTableChange = ({
@@ -157,7 +173,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     sort,
   }: {
     page?: { index: number; size: number };
-    sort?: { field: keyof Action; direction: "asc" | "desc" };
+    sort?: { field: keyof TreeNode; direction: "asc" | "desc" };
   }) => {
     if (sort) {
       setSortField(sort.field);
@@ -169,7 +185,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     }
   };
 
-  const getSortedItems = (items: Action[]) => {
+  const getSortedItems = (items: TreeNode[]) => {
     const sortedItems = [...items].sort((a, b) => {
       const first = a[sortField];
       const second = b[sortField];
@@ -188,8 +204,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   };
 
   const displayedActions = showAllActions
-    ? actions
-    : actions.filter((action) => activeActionIds.has(action.id));
+    ? actionNodes
+    : actionNodes.filter((node) => node.role === "Defender");
 
   const paginatedActions = getSortedItems(displayedActions).slice(
     pageIndex * pageSize,
@@ -199,7 +215,11 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   return (
     <div>
       <EuiSwitch
-        label={showAllActions ? "Show only active actions" : "Show all actions"}
+        label={
+          showAllActions
+            ? "Show only defender actions"
+            : "Show all available actions"
+        }
         checked={showAllActions}
         onChange={(e) => setShowAllActions(e.target.checked)}
       />
@@ -208,11 +228,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         items={paginatedActions}
         columns={columns}
         rowProps={(item) => {
-          if (flaggedActions.includes(item.id)) {
+          if (flaggedActions.includes(item.label)) {
             return { style: { backgroundColor: "rgba(255, 0, 0, 0.1)" } };
-          }
-          if (activeActionIds.has(item.id)) {
-            return { style: { backgroundColor: "rgba(0, 128, 0, 0.1)" } };
           }
           return {};
         }}
@@ -220,13 +237,13 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           pageIndex,
           pageSize,
           totalItemCount: displayedActions.length,
-          pageSizeOptions: [5, 10, 20],
+          pageSizeOptions: [3, 10, 20],
         }}
         sorting={{ sort: { field: sortField, direction: sortDirection } }}
         onChange={handleTableChange}
       />
       <EuiSpacer size="m" />
-      <EuiButton onClick={handleExport}>Save Filtered Actions</EuiButton>
+      <EuiButton onClick={handleExport}>Export configuration</EuiButton>
     </div>
   );
 };

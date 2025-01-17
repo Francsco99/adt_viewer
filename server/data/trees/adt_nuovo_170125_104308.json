@@ -1,4 +1,5 @@
 {
+  "original_name": "adt_nuovo.json",
   "tree": {
     "edges": [
       {
@@ -269,7 +270,6 @@
       {
         "action": "bufferOverflow",
         "cost": 40,
-        "hidden": true,
         "id": 22,
         "label": "bufferOverflow",
         "role": "Attacker",

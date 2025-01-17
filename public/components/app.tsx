@@ -309,11 +309,11 @@ export const AdtViewerApp = ({
                       },
                     ]}
                     initialSelectedTab={{
-                      id: "ActionsVisualizerTab",
-                      name: "Actions Visualizer",
+                      id: "nodeInfoTab",
+                      name: "Node Info",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <ActionsVisualizer states={states} actions={actions} />
+                          <NodeInfo treeData={treeData} />
                         </div>
                       ),
                     }}
@@ -334,8 +334,7 @@ export const AdtViewerApp = ({
                     <h2>Actions Manager</h2>
                   </EuiTitle>
                   <ActionsManager
-                    actions={actions}
-                    states={states}
+                    treeData={treeData}
                     http={http}
                     notifications={notifications}
                   />
