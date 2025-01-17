@@ -41,16 +41,16 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     selectedState,
     setSelectedState,
     selectedNodeColor,
-    selectedNodes,
-    setSelectedNodes,
+    selectedNodesID,
+    setSelectedNodesID,
   } = useTreeContext();
 
   // Toggle node selection
   const handleElementClick = (index: number) => {
-    const updatedNodes = selectedNodes.includes(index)
-      ? selectedNodes.filter((id) => id !== index)
-      : [...selectedNodes, index];
-    setSelectedNodes(updatedNodes);
+    const updatedNodes = selectedNodesID.includes(index)
+      ? selectedNodesID.filter((id) => id !== index)
+      : [...selectedNodesID, index];
+    setSelectedNodesID(updatedNodes);
   };
 
   // Retrieve action details by action ID
@@ -172,7 +172,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                       >
                         [
                         {policy.active_nodes.map((value, idx) => {
-                          const isSelected = selectedNodes.includes(idx);
+                          const isSelected = selectedNodesID.includes(idx);
                           const prevValue =
                             index > 0
                               ? states[index - 1].active_nodes[idx]

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   EuiBasicTable,
   EuiBadge,
@@ -19,6 +19,7 @@ interface TreeNode {
   cost?: number;
   time?: number;
   role?: string;
+  hidden?: boolean;
 }
 
 interface TreeData {
@@ -40,9 +41,18 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   if (!treeData) {
     return <p>Loading tree data...</p>;
   }
+
   const [flaggedActions, setFlaggedActions] = useState<string[]>([]);
   const [showAllActions, setShowAllActions] = useState(false);
-  const {selectedTree} = useTreeContext();
+  const { selectedTree } = useTreeContext();
+
+  // Inizializza flaggedActions in base ai nodi con hidden=true
+  useEffect(() => {
+    const hiddenLabels = treeData.nodes
+      .filter((node) => node.type === "Action" && node.hidden)
+      .map((node) => node.label);
+    setFlaggedActions(hiddenLabels);
+  }, [treeData]);
 
   // Filtra i nodi di tipo "Action" dal treeData e rimuovi duplicati
   const actionNodes = Array.from(
@@ -72,12 +82,12 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
             if (node.type === "Action" && flaggedActions.includes(node.label)) {
               return { ...node, hidden: true }; // Aggiunge l'attributo "hidden: true"
             }
-            return node; // Nodo originale
+            return { ...node, hidden: false }; // Rimuove hidden se non è flaggato
           }),
           edges: treeData.edges,
         },
       };
-  
+
       // Invia il JSON al server Python
       const response = await http.post("http://localhost:5002/receive_json", {
         body: JSON.stringify(updatedTreeData),
@@ -85,13 +95,13 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           "Content-Type": "application/json",
         },
       });
-  
+
       if (!response || typeof response !== "object" || !response.file_name) {
         throw new Error("Invalid response from server: missing file_name");
       }
-  
+
       const { file_name, data } = response;
-  
+
       // Salva il file con il nome restituito dal server
       await http.post(`/api/adt_viewer/save_tree/${file_name}`, {
         body: JSON.stringify(data),
@@ -99,7 +109,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           "Content-Type": "application/json",
         },
       });
-  
+
       // Notifica di successo
       notifications.toasts.addSuccess(
         `File saved successfully as ${file_name} in server/data/trees`
@@ -112,7 +122,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         }`
       );
     }
-  };  
+  };
 
   const columns = [
     {

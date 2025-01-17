@@ -15,7 +15,7 @@ interface Node {
 }
 
 export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
-  const { selectedNodes } = useTreeContext(); // Get selected nodes (array of IDs) from context
+  const { selectedNodesID } = useTreeContext(); // Get selected nodes (array of IDs) from context
   const [showAllNodes, setShowAllNodes] = useState(false); // Toggle to show all nodes
   const [pageIndex, setPageIndex] = useState(0); // Current page index
   const [pageSize, setPageSize] = useState(5); // Page size
@@ -35,7 +35,7 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
         role: node.role ?? "", // Default empty string if role is undefined
       }))
     : treeData.nodes
-        .filter((node) => selectedNodes.includes(node.id)) // Filter only selected nodes
+        .filter((node) => selectedNodesID.includes(node.id)) // Filter only selected nodes
         .map((node) => ({
           id: node.id,
           label: node.label,

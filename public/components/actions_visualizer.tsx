@@ -39,7 +39,7 @@ export const ActionsVisualizer: React.FC<ActionsVisualizerProps> = ({
   states,
   actions,
 }) => {
-  const { selectedNodes, selectedState } = useTreeContext(); // Use selectedNodes
+  const { selectedNodesID, selectedState } = useTreeContext(); // Use selectedNodesID
   const [showAllActions, setShowAllActions] = useState(false);
   const [nodeActions, setNodeActions] = useState<Action[]>([]);
   const [stateTransitionActions, setStateTransitionActions] = useState<Action[]>([]);
@@ -50,11 +50,11 @@ export const ActionsVisualizer: React.FC<ActionsVisualizerProps> = ({
   const [sortField, setSortField] = useState<keyof TableRow>("agent"); // Sorting field
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Sorting direction
 
-  // Update node-specific actions when selectedNodes changes
+  // Update node-specific actions when selectedNodesID changes
   useEffect(() => {
-    if (selectedNodes && selectedNodes.length > 0) {
+    if (selectedNodesID && selectedNodesID.length > 0) {
       const relevantActionIds = states.flatMap((state) =>
-        state.action_nodes.some((nodeId) => selectedNodes.includes(nodeId))
+        state.action_nodes.some((nodeId) => selectedNodesID.includes(nodeId))
           ? state.actions_id
           : []
       );
@@ -65,7 +65,7 @@ export const ActionsVisualizer: React.FC<ActionsVisualizerProps> = ({
     } else {
       setNodeActions([]);
     }
-  }, [selectedNodes, states, actions]);
+  }, [selectedNodesID, states, actions]);
 
   // Update state transition actions based on selectedState
   useEffect(() => {
@@ -203,8 +203,8 @@ export const ActionsVisualizer: React.FC<ActionsVisualizerProps> = ({
       {/* Table for actions available for selected nodes */}
       <EuiText>
         <h5>
-          {selectedNodes && selectedNodes.length > 0
-            ? `Actions available for Nodes: ${selectedNodes.join(", ")}`
+          {selectedNodesID && selectedNodesID.length > 0
+            ? `Actions available for Nodes: ${selectedNodesID.join(", ")}`
             : "No Nodes Selected"}
         </h5>
       </EuiText>

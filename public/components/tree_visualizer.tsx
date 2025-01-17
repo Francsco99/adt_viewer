@@ -37,8 +37,8 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   const svgRef = useRef<SVGSVGElement | null>(null); // Reference to the SVG element
   const gRef = useRef<SVGGElement | null>(null); // Reference to the group element
   const {
-    selectedNodes,
-    setSelectedNodes,
+    selectedNodesID,
+    setSelectedNodesID,
     activeNodeColor,
     selectedNodeColor,
     defenderNodeColor,
@@ -138,16 +138,16 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
         const nodeIdsWithSameLabel = nodesWithSameLabel.map((node) => node.id);
 
         const isAlreadySelected = nodeIdsWithSameLabel.every((id) =>
-          selectedNodes.includes(id)
+          selectedNodesID.includes(id)
         );
 
         if (isAlreadySelected) {
-          setSelectedNodes(
-            selectedNodes.filter((id) => !nodeIdsWithSameLabel.includes(id))
+          setSelectedNodesID(
+            selectedNodesID.filter((id) => !nodeIdsWithSameLabel.includes(id))
           );
         } else {
-          setSelectedNodes([
-            ...new Set([...selectedNodes, ...nodeIdsWithSameLabel]),
+          setSelectedNodesID([
+            ...new Set([...selectedNodesID, ...nodeIdsWithSameLabel]),
           ]);
         }
       });
@@ -162,7 +162,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
         : "white";
       const strokeColor = isHidden(d.data)
         ? "gray"
-        : selectedNodes.includes(d.data.id)
+        : selectedNodesID.includes(d.data.id)
         ? selectedNodeColor
         : d.data.role === "Defender"
         ? defenderNodeColor
@@ -181,7 +181,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           .attr("y", -25)
           .attr("fill", fillColor)
           .attr("stroke", strokeColor)
-          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4)
+          .attr("stroke-width", selectedNodesID.includes(d.data.id) ? 7 : 4)
           .attr("stroke-dasharray",strokeDashArray);
       } else {
         group
@@ -190,7 +190,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           .attr("ry", 30)
           .attr("fill", fillColor)
           .attr("stroke", strokeColor)
-          .attr("stroke-width", selectedNodes.includes(d.data.id) ? 7 : 4)
+          .attr("stroke-width", selectedNodesID.includes(d.data.id) ? 7 : 4)
           .attr("stroke-dasharray",strokeDashArray);
       }
     });
@@ -202,7 +202,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("dy", ".35em")
       .attr("font-size", "30px")
       .attr("font-weight", (d) =>
-        selectedNodes.includes(d.data.id) ? "bold" : "normal"
+        selectedNodesID.includes(d.data.id) ? "bold" : "normal"
       )
       .attr("fill", "black")
       .text((d) => d.data.id);
@@ -238,7 +238,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   }, [
     data,
     activeNodes,
-    selectedNodes,
+    selectedNodesID,
     dimensions,
     zoomTransform.x,
     zoomTransform.y,

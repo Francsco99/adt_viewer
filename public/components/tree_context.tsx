@@ -2,10 +2,15 @@ import React, { createContext, useContext, ReactNode } from "react";
 
 // Interface defining the context structure
 interface TreeContextType {
-  selectedNodes: number[]; // Array of selected nodes
-  setSelectedNodes: (nodes: number[]) => void; // Function to update selected nodes
+  selectedNodesID: number[]; // Array of selected nodes ids
+  setSelectedNodesID: (nodes: number[]) => void; // Function to update selected nodes ids
+  
+  selectedNodesLabel: string[]; //Array of selected nodes labels
+  setSelectedNodesLabel: (nodes: string[]) => void; // Function to update selected nodes labels
+
   selectedState: number; // Currently selected state ID
   setSelectedState: (state: number) => void; // Function to update selected state
+  
   states: any[]; // Array of all states
   setStates: (states: any[]) => void; // Function to update the states
 
@@ -35,7 +40,8 @@ export const TreeContextProvider: React.FC<{
   selectedTree: string | null; // Passed down from App.tsx
 }> = ({ children, selectedPolicy, selectedTree }) => {
   const [states, setStates] = React.useState<any[]>([]);
-  const [selectedNodes, setSelectedNodes] = React.useState<number[]>([]);
+  const [selectedNodesID, setSelectedNodesID] = React.useState<number[]>([]);
+  const [selectedNodesLabel, setSelectedNodesLabel] = React.useState<string[]>([]);
   const [selectedState, setSelectedState] = React.useState<number>(0);
 
   const palette = ["#003f5c","#2f4b7c","#665191","#a05195","#d45087","#f95d6a","#ff7c43","#ffa600","#7cb518","#e63946","#0466c8"];
@@ -53,8 +59,12 @@ export const TreeContextProvider: React.FC<{
   return (
     <TreeContext.Provider
       value={{
-        selectedNodes, // Provide selected nodes
-        setSelectedNodes, // Provide function to update selected nodes
+        selectedNodesID, // Provide selected nodes ids
+        setSelectedNodesID, // Provide function to update selected nodes
+        
+        selectedNodesLabel, // Provide selected nodes labels
+        setSelectedNodesLabel, // Provide function to update selected nodes labels
+
         selectedState, // Provide the current selected state ID
         setSelectedState, // Provide function to update the selected state
         states, // Provide the list of states

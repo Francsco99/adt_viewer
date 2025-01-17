@@ -63,8 +63,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const {
     setSelectedState,
     selectedState,
-    selectedNodes,
-    setSelectedNodes,
+    selectedNodesID,
+    setSelectedNodesID,
   } = useTreeContext(); // Access context values for selected state and nodes
   const [isCycling, setIsCycling] = useState(false); // Cycling state indicator
 
@@ -94,7 +94,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   // Clear the selected nodes and animate the button
   const clearSelectedNodes = () => {
-    setSelectedNodes([]);
+    setSelectedNodesID([]);
     clearNodesRef.current?.euiAnimate();
   };
 
@@ -154,7 +154,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {/* Clear Nodes Button */}
         <ClearNodesButton
           ref={clearNodesRef}
-          selectedNodesCount={selectedNodes.length}
+          selectedNodesCount={selectedNodesID.length}
           onClear={clearSelectedNodes}
         />
 
