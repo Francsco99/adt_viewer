@@ -70,9 +70,9 @@ export const AdtViewerApp = ({
       .get("/api/adt_viewer/policies_list")
       .then((res) => {
         setPoliciesList(res.policies);
-        if (res.policies.includes("policy.json")) {
-          setSelectedPolicy("policy.json");
-          loadPolicy("policy.json");
+        if (res.policies.length>0) {
+          setSelectedPolicy(res.policies[0]);
+          loadPolicy(res.policies[0]);
         }
       })
       .catch((error) =>
@@ -281,15 +281,6 @@ export const AdtViewerApp = ({
                         ),
                       },
                       {
-                        id: "ActionsVisualizerTab",
-                        name: "Actions Visualizer",
-                        content: (
-                          <div style={{ padding: "16px" }}>
-                            <ActionsVisualizer states={states} actions={actions} />
-                          </div>
-                        ),
-                      },
-                      {
                         id: "StatesVisualizerTab",
                         name: "States Visualizer",
                         content: (
@@ -304,6 +295,15 @@ export const AdtViewerApp = ({
                               actions={actions}
                               states={states}
                             />
+                          </div>
+                        ),
+                      },
+                      {
+                        id: "ActionsManagerTab",
+                        name: "Actions Manager",
+                        content: (
+                          <div style={{ padding: "16px" }}>
+                            <ActionsManager treeData={treeData} http={http} notifications={notifications} />
                           </div>
                         ),
                       },
@@ -331,12 +331,10 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={1}>
                 <EuiPanel>
                   <EuiTitle size="m">
-                    <h2>Actions Manager</h2>
+                    <h2>Actions Visualizer</h2>
                   </EuiTitle>
-                  <ActionsManager
-                    treeData={treeData}
-                    http={http}
-                    notifications={notifications}
+                  <ActionsVisualizer
+                    states={states} actions={actions}
                   />
                 </EuiPanel>
               </EuiFlexItem>
