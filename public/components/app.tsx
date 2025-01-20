@@ -128,6 +128,8 @@ export const AdtViewerApp = ({
           <EuiHeaderSection grow={true}>
             <EuiHeaderSectionItem>
               <Toolbar
+                http={http}
+                notifications={notifications}
                 currentStateIndex={currentStateIndex}
                 setCurrentStateIndex={setCurrentStateIndex}
                 states={states}

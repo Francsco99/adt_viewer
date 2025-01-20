@@ -33,6 +33,7 @@ async function writeJsonFile(filePath: string, data: object): Promise<void> {
 }
 
 export function defineRoutes(router: IRouter) {
+  
   /**
    * Route: /api/adt_viewer/trees_list
    * Descrizione: Restituisce un elenco di file di alberi disponibili.

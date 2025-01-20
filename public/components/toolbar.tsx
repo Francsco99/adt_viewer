@@ -8,13 +8,24 @@ import {
   EuiIcon,
   EuiText,
   EuiLoadingSpinner,
+  EuiFilePicker,
+  EuiButton,
+  EuiModal,
+  EuiModalBody,
+  EuiModalHeader,
+  EuiModalHeaderTitle,
+  EuiOverlayMask,
+  EuiSpacer,
 } from "@elastic/eui";
+import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
 
 interface ToolbarProps {
   currentStateIndex: number; // Current index of the state
   setCurrentStateIndex: React.Dispatch<React.SetStateAction<number>>; // Function to update the state index
   states: { state_id: number }[]; // List of states
+  http: CoreStart["http"];
+  notifications: CoreStart["notifications"];
 }
 
 interface ClearNodesButtonProps {
@@ -59,6 +70,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   currentStateIndex,
   setCurrentStateIndex,
   states,
+  http,
+  notifications,
 }) => {
   const {
     setSelectedState,
@@ -67,7 +80,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     setSelectedNodesID,
   } = useTreeContext(); // Access context values for selected state and nodes
   const [isCycling, setIsCycling] = useState(false); // Cycling state indicator
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const clearNodesRef = useRef<any>(null); // Reference to trigger animation on clear nodes
 
   // Navigate to the previous state
@@ -97,6 +111,70 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     setSelectedNodesID([]);
     clearNodesRef.current?.euiAnimate();
   };
+
+  // Funzione per aprire il modale
+  const openModal = () => setIsModalOpen(true);
+
+  // Funzione per chiudere il modale
+  const closeModal = () => setIsModalOpen(false);
+
+  const handleFileUploading = async (file: File) => {
+    if (file.type !== "text/xml") {
+      notifications.toasts.addDanger("Only XML files are allowed.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // Invio del file XML al server Python
+      const response = await http.post("http://localhost:5002/receive_xml", {
+        body: formData, // FormData viene passato direttamente
+        headers: {
+          "Content-Type": undefined, // Lascia che il browser gestisca il boundary del multipart
+        },
+      });
+
+      if (!response || typeof response !== "object" || !response.data) {
+        throw new Error("Invalid response from server.");
+      }
+
+      const { file_name, data } = response;
+
+      if (!file_name || !data) {
+        throw new Error("Response is missing file_name or data.");
+      }
+
+      // Salva il file JSON generato dal server
+      await http.post(`/api/adt_viewer/save_tree/${file_name}`, {
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Notifica di successo
+      notifications.toasts.addSuccess(
+        `File saved successfully as ${file_name} in server/data/trees`
+      );
+    } catch (error) {
+      console.error("Error during file upload and save process:", error);
+      notifications.toasts.addDanger(
+        `Error during file upload and save process: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  };
+
+  const handleFileChange = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    await handleFileUploading(file);
+  };
+
 
   return (
     <EuiHeaderSection grow>
@@ -169,10 +247,39 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {isCycling && <EuiLoadingSpinner size="l" />}
       </EuiHeaderSectionItem>
 
-      {/* File uploading */}
+      {/* Upload Button */}
       <EuiHeaderSectionItem>
-        
+        <EuiToolTip position="bottom" content="Upload XML file">
+          <EuiHeaderSectionItemButton aria-label="Upload XML" onClick={openModal}>
+            <EuiIcon type="importAction" />
+          </EuiHeaderSectionItemButton>
+        </EuiToolTip>
       </EuiHeaderSectionItem>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <EuiOverlayMask>
+          <EuiModal onClose={closeModal} initialFocus="[name=filePicker]">
+            <EuiModalHeader>
+              <EuiModalHeaderTitle>Upload XML File</EuiModalHeaderTitle>
+            </EuiModalHeader>
+            <EuiModalBody>
+              <EuiFilePicker
+                id="filePicker"
+                name="filePicker"
+                initialPromptText="Select an XML file to upload"
+                onChange={handleFileChange}
+                accept=".xml"
+              />
+              <EuiSpacer size="m" />
+              <EuiButton fill onClick={closeModal}>
+                Close
+              </EuiButton>
+            </EuiModalBody>
+          </EuiModal>
+        </EuiOverlayMask>
+      )}
     </EuiHeaderSection>
+
   );
 };
