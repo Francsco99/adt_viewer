@@ -138,6 +138,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     {
       field: "label",
       name: "Action",
+      sortable: true,
     },
     {
       field: "cost",
@@ -151,7 +152,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     },
     {
       field: "flag",
-      name: "Manage",
+      name: "Flag",
       render: (_: any, item: TreeNode) => (
         <EuiToolTip
           position="top"
