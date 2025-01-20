@@ -158,14 +158,20 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           onClear={clearSelectedNodes}
         />
 
-        {/* Current State Display */}
+        {/* Current State Display 
         <EuiText>
           <span>Current State: </span>
           <span style={{ fontWeight: "bold" }}>{selectedState}</span>
         </EuiText>
+        */}
 
         {/* Cycling Indicator */}
         {isCycling && <EuiLoadingSpinner size="l" />}
+      </EuiHeaderSectionItem>
+
+      {/* File uploading */}
+      <EuiHeaderSectionItem>
+        
       </EuiHeaderSectionItem>
     </EuiHeaderSection>
   );

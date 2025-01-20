@@ -1,6 +1,7 @@
 import React from "react";
 import { TreeVisualizer } from "./tree_visualizer";
 import { useTreeContext } from "./tree_context";
+import { EuiFlexGroup, EuiFlexItem, EuiTitle } from "@elastic/eui";
 
 // Define the structure of a TreeState
 interface TreeState {
@@ -29,6 +30,18 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
  
   return (
     <div>
+      <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
+        <EuiFlexItem grow={false}>
+          <EuiTitle size="m">
+            <h2>Attack Tree</h2>
+          </EuiTitle>
+        </EuiFlexItem>
+        <EuiFlexItem grow={false}>
+          <EuiTitle size="m">
+            <h2 >State: <strong>{selectedState}</strong></h2>
+          </EuiTitle>
+        </EuiFlexItem>
+      </EuiFlexGroup>
       {/* Render the tree visualizer with the active nodes for the current state */}
       {treeData && (
         <TreeVisualizer data={treeData} activeNodes={currentActiveNodes} />

@@ -253,9 +253,6 @@ export const AdtViewerApp = ({
             <EuiFlexGroup gutterSize="m">
               <EuiFlexItem grow={1}>
                 <EuiPanel>
-                  <EuiTitle size="m">
-                    <h2>Attack Tree</h2>
-                  </EuiTitle>
                   {treeData ? (
                     <TreeStateNavigator treeData={treeData} states={states} />
                   ) : (
