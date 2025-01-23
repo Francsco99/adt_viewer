@@ -78,16 +78,15 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         original_name: selectedTree,
         tree: {
           nodes: treeData.nodes.map((node) => {
-            // Verifica se il nodo è flaggato (usando la label)
             if (node.type === "Action" && flaggedActions.includes(node.label)) {
-              return { ...node, hidden: true }; // Aggiunge l'attributo "hidden: true"
+              return { ...node, hidden: true };
             }
-            return { ...node, hidden: false }; // Rimuove hidden se non è flaggato
+            return { ...node, hidden: false };
           }),
           edges: treeData.edges,
         },
       };
-
+  
       // Invia il JSON al server Python
       const response = await http.post("http://localhost:5002/receive_json", {
         body: JSON.stringify(updatedTreeData),
@@ -95,35 +94,55 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           "Content-Type": "application/json",
         },
       });
-
+  
       if (!response || typeof response !== "object" || !response.file_name) {
         throw new Error("Invalid response from server: missing file_name");
       }
+  
+      const { file_name, tree_data, policy_content } = response;
+  
+      // Esegui le richieste di salvataggio in parallelo
+      try {
+        const [savePolicyResponse, saveTreeResponse] = await Promise.all([
+          http.post(`/api/adt_viewer/save_policy/${file_name}`, {
+            body: JSON.stringify(policy_content),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }),
+          http.post(`/api/adt_viewer/save_tree/${file_name}`, {
+            body: JSON.stringify(tree_data),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }),
+        ]);
 
-      const { file_name, data } = response;
+        console.log("Policy content salvato correttamente:", savePolicyResponse);
+        console.log("Tree data salvato correttamente:", saveTreeResponse);
 
-      // Salva il file con il nome restituito dal server
-      await http.post(`/api/adt_viewer/save_tree/${file_name}`, {
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Notifica di successo
-      notifications.toasts.addSuccess(
-        `File saved successfully as ${file_name} in server/data/trees`
-      );
+        // Notifica di successo
+        notifications.toasts.addSuccess(
+          `File saved successfully as ${file_name} in server/data/trees and policies`
+        );
+      } catch (saveError) {
+        console.error("Error during save operations:", saveError);
+        notifications.toasts.addDanger(
+          `Error during save operations: ${
+            saveError instanceof Error ? saveError.message : "Unknown error"
+          }`
+        );
+      }
     } catch (error) {
-      console.error("Error saving updated tree data file:", error);
+      console.error("Error during export operation:", error);
       notifications.toasts.addDanger(
-        `Error saving updated tree data file: ${
+        `Error during export operation: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
   };
-
+  
   const columns = [
     {
       field: "role",

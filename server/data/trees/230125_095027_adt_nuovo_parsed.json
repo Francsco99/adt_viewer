@@ -1,4 +1,5 @@
 {
+  "original_name": "adt_nuovo_parsed.json",
   "tree": {
     "edges": [
       {
@@ -112,6 +113,7 @@
     ],
     "nodes": [
       {
+        "hidden": false,
         "id": 0,
         "label": "Data Exfiltration",
         "type": "Goal"
@@ -119,6 +121,7 @@
       {
         "action": "exfiltrateData",
         "cost": 50,
+        "hidden": false,
         "id": 1,
         "label": "exfiltrateData",
         "role": "Attacker",
@@ -126,6 +129,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 2,
         "label": "Access to MySQL",
         "type": "Attribute"
@@ -133,6 +137,7 @@
       {
         "action": "getLoginData",
         "cost": 10,
+        "hidden": false,
         "id": 3,
         "label": "getLoginData",
         "role": "Attacker",
@@ -140,6 +145,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 4,
         "label": "Access to Sensitive Files",
         "type": "Attribute"
@@ -147,6 +153,7 @@
       {
         "action": "getFiles",
         "cost": 30,
+        "hidden": false,
         "id": 5,
         "label": "getFiles",
         "role": "Attacker",
@@ -154,6 +161,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 6,
         "label": "Misconfigured Apache",
         "type": "Attribute"
@@ -161,6 +169,7 @@
       {
         "action": "reconfigureApache",
         "cost": 50,
+        "hidden": false,
         "id": 7,
         "label": "Reconfigure Apache",
         "role": "Defender",
@@ -168,6 +177,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 8,
         "label": "Access to Reverse Shell",
         "type": "Attribute"
@@ -175,6 +185,7 @@
       {
         "action": "pathTraversal",
         "cost": 20,
+        "hidden": true,
         "id": 9,
         "label": "pathTraversal",
         "role": "Attacker",
@@ -182,6 +193,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 10,
         "label": "Web Recon Succesful",
         "type": "Attribute"
@@ -189,6 +201,7 @@
       {
         "action": "webRecon",
         "cost": 5,
+        "hidden": false,
         "id": 11,
         "label": "webRecon",
         "role": "Attacker",
@@ -196,11 +209,13 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 12,
         "label": "Webserver Publicly Exposed",
         "type": "Attribute"
       },
       {
+        "hidden": false,
         "id": 13,
         "label": "CGI scripts enabled",
         "type": "Attribute"
@@ -208,6 +223,7 @@
       {
         "action": "disableCGIScripts",
         "cost": 45,
+        "hidden": false,
         "id": 14,
         "label": "Disable CGI Scripts",
         "role": "Defender",
@@ -215,6 +231,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 15,
         "label": "Vulnerable Apache HTTP Server Version",
         "type": "Attribute"
@@ -222,6 +239,7 @@
       {
         "action": "updateApache",
         "cost": 20,
+        "hidden": false,
         "id": 16,
         "label": "Update Apache",
         "role": "Defender",
@@ -231,6 +249,7 @@
       {
         "action": "changeFilePermissions",
         "cost": 60,
+        "hidden": false,
         "id": 17,
         "label": "Change Files Permissions",
         "role": "Defender",
@@ -238,6 +257,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 18,
         "label": "Unencrypted Files",
         "type": "Attribute"
@@ -245,6 +265,7 @@
       {
         "action": "encryptFile",
         "cost": 150,
+        "hidden": false,
         "id": 19,
         "label": "Encrypt File",
         "role": "Defender",
@@ -254,6 +275,7 @@
       {
         "action": "changeCredentials",
         "cost": 200,
+        "hidden": false,
         "id": 20,
         "label": "Change Credentials",
         "role": "Defender",
@@ -261,6 +283,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 21,
         "label": "Access to Execute Arbitrary Code",
         "type": "Attribute"
@@ -268,6 +291,7 @@
       {
         "action": "bufferOverflow",
         "cost": 40,
+        "hidden": true,
         "id": 22,
         "label": "bufferOverflow",
         "role": "Attacker",
@@ -275,6 +299,7 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 23,
         "label": "Web Recon Succesful",
         "type": "Attribute"
@@ -282,6 +307,7 @@
       {
         "action": "webRecon",
         "cost": 5,
+        "hidden": false,
         "id": 24,
         "label": "webRecon",
         "role": "Attacker",
@@ -289,11 +315,13 @@
         "type": "Action"
       },
       {
+        "hidden": false,
         "id": 25,
         "label": "Webserver Publicly Exposed",
         "type": "Attribute"
       },
       {
+        "hidden": false,
         "id": 26,
         "label": "SOCKS5 Proxy Active",
         "type": "Attribute"
@@ -301,6 +329,7 @@
       {
         "action": "deactivateSOCKS5Proxy",
         "cost": 120,
+        "hidden": false,
         "id": 27,
         "label": "Deactivate SOCKS5 proxy",
         "role": "Defender",

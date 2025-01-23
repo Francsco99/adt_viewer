@@ -71,8 +71,8 @@ export const AdtViewerApp = ({
       .then((res) => {
         setPoliciesList(res.policies);
         if (res.policies.length>0) {
-          setSelectedPolicy(res.policies[0]);
-          loadPolicy(res.policies[0]);
+          setSelectedPolicy("policy.json");
+          loadPolicy("policy.json");
         }
       })
       .catch((error) =>

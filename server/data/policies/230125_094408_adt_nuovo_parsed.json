@@ -1,0 +1,92 @@
+{
+  "states": [
+    {
+      "optimal_action": null,
+      "state_data": {
+        "AccesstoExecuteArbitraryCode": 0,
+        "AccesstoMySQL": 0,
+        "AccesstoSensitiveFiles": 1,
+        "DataExfiltration": 0,
+        "SOCKS5ProxyActive": 1,
+        "UnencryptedFiles": 1,
+        "WebReconSuccesful": 0,
+        "WebserverPubliclyExposed": 1,
+        "bufferOverflow": false,
+        "exfiltrateData": false,
+        "getLoginData": false,
+        "state_reward1": 0,
+        "state_reward2": 0,
+        "transition_reward1": 0,
+        "transition_reward2": 120,
+        "webRecon": false
+      },
+      "state_id": 0
+    },
+    {
+      "optimal_action": "getLoginData",
+      "state_data": {
+        "AccesstoExecuteArbitraryCode": 0,
+        "AccesstoMySQL": 1,
+        "AccesstoSensitiveFiles": 1,
+        "DataExfiltration": 0,
+        "SOCKS5ProxyActive": 1,
+        "UnencryptedFiles": 1,
+        "WebReconSuccesful": 0,
+        "WebserverPubliclyExposed": 1,
+        "bufferOverflow": false,
+        "exfiltrateData": false,
+        "getLoginData": true,
+        "state_reward1": 0,
+        "state_reward2": 0,
+        "transition_reward1": 50,
+        "transition_reward2": 500,
+        "webRecon": false
+      },
+      "state_id": 1
+    },
+    {
+      "optimal_action": "deactivateSOCKS5Proxy",
+      "state_data": {
+        "AccesstoExecuteArbitraryCode": 0,
+        "AccesstoMySQL": 1,
+        "AccesstoSensitiveFiles": 1,
+        "DataExfiltration": 0,
+        "SOCKS5ProxyActive": 2,
+        "UnencryptedFiles": 1,
+        "WebReconSuccesful": 0,
+        "WebserverPubliclyExposed": 1,
+        "bufferOverflow": false,
+        "exfiltrateData": false,
+        "getLoginData": true,
+        "state_reward1": 0,
+        "state_reward2": 0,
+        "transition_reward1": 0,
+        "transition_reward2": 0,
+        "webRecon": false
+      },
+      "state_id": 2
+    },
+    {
+      "optimal_action": "exfiltrateData",
+      "state_data": {
+        "AccesstoExecuteArbitraryCode": 0,
+        "AccesstoMySQL": 1,
+        "AccesstoSensitiveFiles": 1,
+        "DataExfiltration": 1,
+        "SOCKS5ProxyActive": 2,
+        "UnencryptedFiles": 1,
+        "WebReconSuccesful": 0,
+        "WebserverPubliclyExposed": 1,
+        "bufferOverflow": false,
+        "exfiltrateData": true,
+        "getLoginData": true,
+        "state_reward1": 0,
+        "state_reward2": 0,
+        "transition_reward1": "?",
+        "transition_reward2": "?",
+        "webRecon": false
+      },
+      "state_id": 3
+    }
+  ]
+}
