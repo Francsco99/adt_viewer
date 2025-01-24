@@ -72,33 +72,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   notifications,
 }) => {
   const {
-    setSelectedState,
-    selectedNodesID,
-    setSelectedNodesID,
+    selectedStateID,
+    setSelectedStateID,
+    selectedNodesLabel,
+    setSelectedNodesLabel,
   } = useTreeContext(); // Access context values for selected state and nodes
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const clearNodesRef = useRef<any>(null); // Reference to trigger animation on clear nodes
 
+  const currentIndex = states.findIndex((state) => state.state_id === selectedStateID);
+  console.log(currentIndex);
   // Navigate to the previous state
   const goToPreviousState = () => {
-    if (currentStateIndex > 0) {
-      setCurrentStateIndex(currentStateIndex - 1);
-      setSelectedState(states[currentStateIndex - 1].state_id);
+    if (currentIndex > 0) {
+      setSelectedStateID(states[currentIndex - 1].state_id);
     }
   };
 
   // Navigate to the next state
   const goToNextState = () => {
-    if (currentStateIndex < states.length - 1) {
-      setCurrentStateIndex(currentStateIndex + 1);
-      setSelectedState(states[currentStateIndex + 1].state_id);
+    if (currentIndex < states.length - 1) {
+      setSelectedStateID(states[currentIndex + 1].state_id); // Aggiorna il contesto
     }
   };
 
   // Clear the selected nodes and animate the button
   const clearSelectedNodes = () => {
-    setSelectedNodesID([]);
+    setSelectedNodesLabel([]);
     clearNodesRef.current?.euiAnimate();
   };
 
@@ -181,7 +182,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <EuiToolTip position="bottom" content="Go to previous state">
           <EuiHeaderSectionItemButton
             aria-label="Previous State"
-            isDisabled={currentStateIndex <= 0} // Disable if at the first state
+            isDisabled={currentIndex <= 0} // Disable if at the first state
             onClick={goToPreviousState}
           >
             <EuiIcon type="framePrevious" />
@@ -203,7 +204,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {/* Clear Nodes Button */}
         <ClearNodesButton
           ref={clearNodesRef}
-          selectedNodesCount={selectedNodesID.length}
+          selectedNodesCount={selectedNodesLabel.length}
           onClear={clearSelectedNodes}
         />
       </EuiHeaderSectionItem>

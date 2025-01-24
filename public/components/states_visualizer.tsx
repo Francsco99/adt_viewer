@@ -41,8 +41,8 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
   treeData,
 }) => {
   const {
-    selectedState,
-    setSelectedState,
+    selectedStateID,
+    setSelectedStateID,
     setActiveNodes,
     selectedNodeColor,
     selectedNodesLabel,
@@ -70,13 +70,13 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
 
   // Updates activeNodes whenever the selected state changes
   useEffect(() => {
-    if (selectedState >= 0 && states[selectedState]) {
+    if (selectedStateID >= 0 && states[selectedStateID]) {
       const activeNodesMap = extractActiveNodes(
-        states[selectedState].state_data
+        states[selectedStateID].state_data
       );
       setActiveNodes(activeNodesMap);
     }
-  }, [selectedState, states, setActiveNodes]);
+  }, [selectedStateID, states, setActiveNodes]);
 
   // Calculates cumulative costs for a given state index
   const calculateCumulativeCosts = (stateIndex: number) => {
@@ -186,7 +186,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                     style={{
                       backgroundColor: "white",
                       border: `2px solid ${
-                        selectedState === state.state_id
+                        selectedStateID === state.state_id
                           ? selectedNodeColor
                           : "black"
                       }`,
@@ -198,7 +198,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                       height: "60px",
                       padding: "8px",
                     }}
-                    onClick={() => setSelectedState(state.state_id)}
+                    onClick={() => setSelectedStateID(state.state_id)}
                   >
                     <EuiText>
                       <p

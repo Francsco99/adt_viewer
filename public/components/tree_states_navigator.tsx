@@ -25,7 +25,7 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
   treeData,
   states,
 }) => {
-  const { selectedState } = useTreeContext(); // Get the currently selected state from context
+  const { selectedStateID } = useTreeContext(); // Get the currently selected state from context
  
   return (
     <div>
@@ -37,7 +37,7 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
         </EuiFlexItem>
         <EuiFlexItem grow={false}>
           <EuiTitle size="m">
-            <h2 >State: <strong>{selectedState}</strong></h2>
+            <h2 >State: <strong>{selectedStateID}</strong></h2>
           </EuiTitle>
         </EuiFlexItem>
       </EuiFlexGroup>

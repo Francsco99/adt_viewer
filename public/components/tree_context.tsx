@@ -8,8 +8,8 @@ interface TreeContextType {
   selectedNodesLabel: string[]; //Array of selected nodes labels
   setSelectedNodesLabel: (nodes: string[]) => void; // Function to update selected nodes labels
 
-  selectedState: number; // Currently selected state ID
-  setSelectedState: (state: number) => void; // Function to update selected state
+  selectedStateID: number; // Currently selected state ID
+  setSelectedStateID: (state: number) => void; // Function to update selected state
   
   states: any[]; // Array of all states
   setStates: (states: any[]) => void; // Function to update the states
@@ -47,7 +47,7 @@ export const TreeContextProvider: React.FC<{
   const [states, setStates] = React.useState<any[]>([]);
   const [selectedNodesID, setSelectedNodesID] = React.useState<number[]>([]);
   const [selectedNodesLabel, setSelectedNodesLabel] = React.useState<string[]>([]);
-  const [selectedState, setSelectedState] = React.useState<number>(0);
+  const [selectedStateID, setSelectedStateID] = React.useState<number>(0);
   const [activeNodes, setActiveNodes] = React.useState<any[]>([]);
   
   const palette = ["#003f5c","#2f4b7c","#665191","#a05195","#d45087","#f95d6a","#ff7c43","#ffa600","#7cb518","#e63946","#0466c8"];
@@ -75,8 +75,9 @@ export const TreeContextProvider: React.FC<{
         selectedNodesLabel, // Provide selected nodes labels
         setSelectedNodesLabel, // Provide function to update selected nodes labels
 
-        selectedState, // Provide the current selected state ID
-        setSelectedState, // Provide function to update the selected state
+        selectedStateID, // Provide the current selected state ID
+        setSelectedStateID, // Provide function to update the selected state
+
         states, // Provide the list of states
         setStates, // Provide function to update the list of states
 

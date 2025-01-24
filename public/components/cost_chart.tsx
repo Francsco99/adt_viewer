@@ -37,7 +37,7 @@ interface CostChartProps {
 }
 
 export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
-  const { selectedState, defenderColor, attackerColor, totalColor } =
+  const { selectedStateID, defenderColor, attackerColor, totalColor } =
     useTreeContext();
 
   const [data, setData] = useState<{
@@ -94,8 +94,8 @@ export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
 
       // Split data into colored and gray segments
       const splitData = (data: { x: number; y: number }[]) => ({
-        colored: data.filter((point) => point.x <= selectedState),
-        gray: data.filter((point) => point.x >= selectedState),
+        colored: data.filter((point) => point.x <= selectedStateID),
+        gray: data.filter((point) => point.x >= selectedStateID),
       });
 
       const attackerSplit = splitData(attackerData);
@@ -122,7 +122,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
         totalGray: totalSplit.gray,
       });
     }
-  }, [states, treeData, selectedState]);
+  }, [states, treeData, selectedStateID]);
 
   if (!data || !treeData) return <p>Loading chart...</p>;
 
