@@ -3,22 +3,25 @@ import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
 
 interface NodeInfoProps {
-  treeData: { nodes: { id: number; label: string; type: string; action?: string; role?: string }[] } | null; // Allow null for treeData
+  treeData: { nodes: { id: number; label: string; name: string; type: string; action?: string; role?: string }[] } | null; // Allow null for treeData
 }
 
 interface Node {
   id: number;
   label: string;
+  name: string;
   type: string;
   action?: string;
   role?: string;
 }
 
 export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
-  const { selectedNodesID } = useTreeContext(); // Get selected nodes (array of IDs) from context
+  const { selectedNodesLabel } = useTreeContext(); // Get selected nodes (array of IDs) from context
   const [showAllNodes, setShowAllNodes] = useState(false); // Toggle to show all nodes
   const [pageIndex, setPageIndex] = useState(0); // Current page index
   const [pageSize, setPageSize] = useState(5); // Page size
+  const [sortField, setSortField] = useState<keyof Node>("id"); // Sorting field
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Sorting direction
 
   // Show loading message if treeData is not available
   if (!treeData) {
@@ -30,22 +33,42 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
     ? treeData.nodes.map((node) => ({
         id: node.id,
         label: node.label,
+        name: node.name,
         type: node.type,
         action: node.action ?? "", // Default empty string if action is undefined
         role: node.role ?? "", // Default empty string if role is undefined
       }))
     : treeData.nodes
-        .filter((node) => selectedNodesID.includes(node.id)) // Filter only selected nodes
+        .filter((node) => selectedNodesLabel.includes(node.label)) // Filter only selected nodes
         .map((node) => ({
           id: node.id,
           label: node.label,
+          name: node.name,
           type: node.type,
           action: node.action ?? "",
           role: node.role ?? "",
         }));
 
+  // Sort rows based on current sort field and direction
+  const sortedRows = rows.sort((a, b) => {
+    const first = a[sortField];
+    const second = b[sortField];
+
+    if (typeof first === "string" && typeof second === "string") {
+      return sortDirection === "asc"
+        ? first.localeCompare(second)
+        : second.localeCompare(first);
+    }
+
+    if (typeof first === "number" && typeof second === "number") {
+      return sortDirection === "asc" ? first - second : second - first;
+    }
+
+    return 0;
+  });
+
   // Paginate rows based on current page
-  const paginatedRows = rows.slice(
+  const paginatedRows = sortedRows.slice(
     pageIndex * pageSize,
     pageIndex * pageSize + pageSize
   );
@@ -58,12 +81,14 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
       sortable: true,
     },
     {
-      field: "label",
-      name: "Label",
+      field: "name",
+      name: "Name",
+      sortable: true,
     },
     {
       field: "type",
       name: "Type",
+      sortable: true,
     },
     {
       field: "action",
@@ -92,15 +117,21 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
     pageSizeOptions: [5, 10, 20], // Available page sizes
   };
 
-  // Handle table page change
+  // Handle table page or sort change
   const onTableChange = ({
     page,
+    sort,
   }: {
-    page: { index: number; size: number };
+    page?: { index: number; size: number };
+    sort?: { field: keyof Node; direction: "asc" | "desc" };
   }) => {
     if (page) {
       setPageIndex(page.index); // Update page index
       setPageSize(page.size); // Update page size
+    }
+    if (sort) {
+      setSortField(sort.field); // Update sort field
+      setSortDirection(sort.direction); // Update sort direction
     }
   };
 
@@ -122,6 +153,9 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
         columns={columns}
         tableLayout="auto"
         pagination={pagination} // Pagination configuration
+        sorting={{
+          sort: { field: sortField, direction: sortDirection },
+        }} // Sorting configuration
         onChange={onTableChange} // Handle table change events
       />
     </div>

@@ -18,31 +18,42 @@ import "@elastic/charts/dist/theme_only_light.css";
 import { useTreeContext } from "./tree_context";
 
 interface PolicyData {
-  policy: string;
-  cost: number;
-  time: number;
-  objective: number;
+  policy: string; // Name of the policy
+  cost: number; // Total monetary cost
+  time: number; // Total time
+  objective: number; // Objective function value
 }
 
 interface PolicyComparisonChartProps {
-  http: any;
-  notifications: any;
-  policiesList: string[];
-  actions: { id: number; cost: number; time: number }[];
+  http: any; // HTTP service for API calls
+  notifications: any; // Notifications service for user feedback
+  policiesList: string[]; // List of policies to compare
+  treeData: {
+    nodes: {
+      id: number;
+      label: string;
+      action?: string;
+      cost?: number;
+      time?: number;
+      role?: string;
+    }[];
+    edges: { id_source: number; id_target: number }[];
+  } | null; // Tree data containing nodes and edges
 }
 
 export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
   http,
   notifications,
   policiesList,
-  actions,
+  treeData,
 }) => {
-  const { getColor } = useTreeContext();
-  const [policyMetrics, setPolicyMetrics] = useState<PolicyData[]>([]);
+  const { getColor } = useTreeContext(); // Get color palette from context
+  const [policyMetrics, setPolicyMetrics] = useState<PolicyData[]>([]); // Metrics for each policy
   const [selectedPolicies, setSelectedPolicies] =
-    useState<string[]>(policiesList);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    useState<string[]>(policiesList); // Selected policies for display
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false); // Toggle for the policy selection popover
 
+  // Options for the policy selector
   const [options, setOptions] = useState<{ label: string; checked?: "on" }[]>(
     policiesList.map((policy) => ({
       label: policy,
@@ -50,12 +61,18 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
     }))
   );
 
-  const wt = 0.5;
-  const wc = 0.5;
+  const wt = 1; // Weight for time in the objective function
+  const wc = 1; // Weight for cost in the objective function
 
   useEffect(() => {
     const fetchPolicyData = async () => {
+      if (!treeData) {
+        notifications.toasts.addDanger("Tree data is not available.");
+        return;
+      }
+
       try {
+        // Fetch metrics for each policy
         const metrics = await Promise.all(
           policiesList.map(async (policyName) => {
             const response = await http.get(
@@ -66,16 +83,35 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
             let totalCost = 0;
             let totalTime = 0;
 
+            // Calculate total cost and time using `optimal_action` and `treeData`
             policy.states.forEach((state: any) => {
-              state.actions_id.forEach((actionId: number) => {
-                const action = actions.find((act) => act.id === actionId);
-                if (action) {
-                  totalCost += action.cost;
-                  totalTime += action.time;
+              const optimalActionLabel = state.optimal_action;
+              if (optimalActionLabel) {
+                const actionNode = treeData.nodes.find(
+                  (node) => node.action === optimalActionLabel
+                );
+                if (
+                  actionNode &&
+                  actionNode.cost !== undefined &&
+                  actionNode.time !== undefined
+                ) {
+                  totalCost += actionNode.cost;
+                  totalTime += actionNode.time;
                 }
-              });
+                console.log(
+                  "label: ",
+                  optimalActionLabel,
+                  "\n",
+                  "cost: ",
+                  actionNode?.cost,
+                  "\n",
+                  "time: ",
+                  actionNode?.time
+                );
+              }
             });
 
+            // Calculate the objective function value
             const objective = wt * totalTime + wc * totalCost;
             return {
               policy: policyName,
@@ -88,6 +124,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
 
         setPolicyMetrics(metrics);
 
+        // Update options for the policy selector
         setOptions(
           policiesList.map((policy) => ({
             label: policy,
@@ -96,14 +133,15 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
         );
       } catch (error) {
         notifications.toasts.addDanger(
-          "Failed to load policy data for comparison"
+          "Failed to load policy data for comparison."
         );
       }
     };
 
     fetchPolicyData();
-  }, [http, policiesList, actions, notifications, selectedPolicies]);
+  }, [http, policiesList, treeData, notifications, selectedPolicies]);
 
+  // Handle selection change in the policy selector
   const handleSelectionChange = (
     updatedOptions: { label: string; checked?: "on" }[]
   ) => {
@@ -114,6 +152,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
     setSelectedPolicies(selected);
   };
 
+  // Filter metrics to include only selected policies
   const filteredMetrics = policyMetrics.filter((metric) =>
     selectedPolicies.includes(metric.policy)
   );
@@ -124,8 +163,9 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
         {filteredMetrics.length > 0 ? (
           <Chart size={{ height: 400 }}>
             <Settings
-              showLegend={false}
+              showLegend={false} // Disable legend
               tooltip={{
+                // Custom tooltip for displaying policy details
                 customTooltip: ({ values }) => (
                   <div
                     style={{
@@ -143,7 +183,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                       ) {
                         return null;
                       }
-  
+
                       return (
                         <div key={idx}>
                           <strong>Policy:</strong> {datum.policy}
@@ -152,7 +192,8 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                           <br />
                           <strong>Monetary Cost:</strong> {datum.cost ?? "N/A"}
                           <br />
-                          <strong>Objective:</strong> {datum.objective.toFixed(2)}
+                          <strong>Objective:</strong>{" "}
+                          {datum.objective.toFixed(2)}
                         </div>
                       );
                     })}
@@ -160,7 +201,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                 ),
               }}
             />
-  
+
             {/* Render a LineSeries for each policy */}
             {filteredMetrics.map((metric, index) => (
               <LineSeries
@@ -174,29 +215,16 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                 lineSeriesStyle={{
                   line: {
                     strokeWidth: 2,
-                    stroke: getColor(index),
+                    stroke: getColor(index), // Assign color from context
                   },
                 }}
-                pointStyleAccessor={(datum) => {
-                  if (datum.x === 0) {
-                    return {
-                      radius: 0,
-                    };
-                  }
-                  return {
-                    visible: true,
-                    radius: 3,
-                    strokeWidth: 6,
-                    stroke: getColor(index), // Colore bordo
-                  };
-                }}
                 data={[
-                  { x: 0, y: 0, policy: metric.policy },
-                  { x: metric.time, y: metric.cost, ...metric },
+                  { x: 0, y: 0, policy: metric.policy }, // Start point
+                  { x: metric.time, y: metric.cost, ...metric }, // End point
                 ]}
               />
             ))}
-  
+
             <Axis
               id="bottom-axis"
               position={Position.Bottom}
@@ -214,7 +242,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
           <p>No policies selected for display.</p>
         )}
       </EuiFlexItem>
-  
+
       <EuiFlexItem grow={false}>
         <EuiPopover
           button={
@@ -245,5 +273,5 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
         </EuiPopover>
       </EuiFlexItem>
     </EuiFlexGroup>
-  );  
+  );
 };

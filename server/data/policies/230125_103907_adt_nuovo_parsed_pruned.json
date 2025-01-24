@@ -1,0 +1,148 @@
+{
+    "states": [
+        {
+            "state_id": 0,
+            "state_data": {
+                "DataExfiltration": 0,
+                "AccesstoSensitiveFiles": 0,
+                "WebReconSuccesful": 0,
+                "AccesstoReverseShell": 0,
+                "AccesstoMySQL": 0,
+                "AccesstoExecuteArbitraryCode": 0,
+                "SOCKS5ProxyActive": 1,
+                "MisconfiguredApache": 1,
+                "UnencryptedFiles": 1,
+                "VulnerableApacheHTTPServerVersion": 1,
+                "WebserverPubliclyExposed": 1,
+                "CGIscriptsenabled": 1,
+                "exfiltrateData": false,
+                "getLoginData": false,
+                "bufferOverflow": false,
+                "getFiles": false,
+                "webRecon": false,
+                "pathTraversal": false
+            },
+            "optimal_action": null
+        },
+        {
+            "state_id": 1,
+            "state_data": {
+                "DataExfiltration": 0,
+                "AccesstoSensitiveFiles": 0,
+                "WebReconSuccesful": 1,
+                "AccesstoReverseShell": 0,
+                "AccesstoMySQL": 0,
+                "AccesstoExecuteArbitraryCode": 0,
+                "SOCKS5ProxyActive": 1,
+                "MisconfiguredApache": 1,
+                "UnencryptedFiles": 1,
+                "VulnerableApacheHTTPServerVersion": 1,
+                "WebserverPubliclyExposed": 1,
+                "CGIscriptsenabled": 1,
+                "exfiltrateData": false,
+                "getLoginData": false,
+                "bufferOverflow": false,
+                "getFiles": false,
+                "webRecon": true,
+                "pathTraversal": false
+            },
+            "optimal_action": "webRecon"
+        },
+        {
+            "state_id": 2,
+            "state_data": {
+                "DataExfiltration": 0,
+                "AccesstoSensitiveFiles": 0,
+                "WebReconSuccesful": 1,
+                "AccesstoReverseShell": 0,
+                "AccesstoMySQL": 0,
+                "AccesstoExecuteArbitraryCode": 0,
+                "SOCKS5ProxyActive": 1,
+                "MisconfiguredApache": 1,
+                "UnencryptedFiles": 1,
+                "VulnerableApacheHTTPServerVersion": 1,
+                "WebserverPubliclyExposed": 1,
+                "CGIscriptsenabled": 2,
+                "exfiltrateData": false,
+                "getLoginData": false,
+                "bufferOverflow": false,
+                "getFiles": false,
+                "webRecon": true,
+                "pathTraversal": false
+            },
+            "optimal_action": "disableCGIScripts"
+        },
+        {
+            "state_id": 3,
+            "state_data": {
+                "DataExfiltration": 0,
+                "AccesstoSensitiveFiles": 0,
+                "WebReconSuccesful": 1,
+                "AccesstoReverseShell": 0,
+                "AccesstoMySQL": 0,
+                "AccesstoExecuteArbitraryCode": 1,
+                "SOCKS5ProxyActive": 1,
+                "MisconfiguredApache": 1,
+                "UnencryptedFiles": 1,
+                "VulnerableApacheHTTPServerVersion": 1,
+                "WebserverPubliclyExposed": 1,
+                "CGIscriptsenabled": 2,
+                "exfiltrateData": false,
+                "getLoginData": false,
+                "bufferOverflow": true,
+                "getFiles": false,
+                "webRecon": true,
+                "pathTraversal": false
+            },
+            "optimal_action": "bufferOverflow"
+        },
+        {
+            "state_id": 4,
+            "state_data": {
+                "DataExfiltration": 0,
+                "AccesstoSensitiveFiles": 0,
+                "WebReconSuccesful": 1,
+                "AccesstoReverseShell": 0,
+                "AccesstoMySQL": 2,
+                "AccesstoExecuteArbitraryCode": 1,
+                "SOCKS5ProxyActive": 1,
+                "MisconfiguredApache": 1,
+                "UnencryptedFiles": 1,
+                "VulnerableApacheHTTPServerVersion": 1,
+                "WebserverPubliclyExposed": 1,
+                "CGIscriptsenabled": 2,
+                "exfiltrateData": false,
+                "getLoginData": false,
+                "bufferOverflow": true,
+                "getFiles": false,
+                "webRecon": true,
+                "pathTraversal": false
+            },
+            "optimal_action": "changeCredentials"
+        },
+        {
+            "state_id": 5,
+            "state_data": {
+                "DataExfiltration": 1,
+                "AccesstoSensitiveFiles": 0,
+                "WebReconSuccesful": 1,
+                "AccesstoReverseShell": 0,
+                "AccesstoMySQL": 2,
+                "AccesstoExecuteArbitraryCode": 1,
+                "SOCKS5ProxyActive": 1,
+                "MisconfiguredApache": 1,
+                "UnencryptedFiles": 1,
+                "VulnerableApacheHTTPServerVersion": 1,
+                "WebserverPubliclyExposed": 1,
+                "CGIscriptsenabled": 2,
+                "exfiltrateData": true,
+                "getLoginData": false,
+                "bufferOverflow": true,
+                "getFiles": false,
+                "webRecon": true,
+                "pathTraversal": false
+            },
+            "optimal_action": "exfiltrateData"
+        }
+    ]
+}

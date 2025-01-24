@@ -13,24 +13,33 @@ import { useTreeContext } from "./tree_context";
 
 interface StateData {
   state_id: number;
-  actions_id: number[];
+  optimal_action: string | null;
 }
 
-interface ActionData {
+interface NodeData {
   id: number;
-  agent: string;
-  action: string;
-  cost: number;
-  time: number;
+  label: string;
+  name: string;
+  action?: string;
+  cost?: number;
+  time?: number;
+  role?: string;
+}
+
+interface TreeData {
+  nodes: NodeData[];
+  edges: { id_source: number; id_target: number }[];
 }
 
 interface CostChartProps {
   states: StateData[];
-  actions: ActionData[];
+  treeData: TreeData | null;
 }
 
-export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
-  const { selectedState, defenderColor, attackerColor, totalColor } = useTreeContext();
+export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
+  const { selectedState, defenderColor, attackerColor, totalColor } =
+    useTreeContext();
+
   const [data, setData] = useState<{
     attackerColored: { x: number; y: number }[];
     attackerGray: { x: number; y: number }[];
@@ -40,12 +49,12 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
     totalGray: { x: number; y: number }[];
   } | null>(null);
 
-  // Pesature per la funzione obiettivo
+  // Weights for the objective function
   const wt = 0.5;
   const wc = 0.5;
 
   useEffect(() => {
-    if (states && actions) {
+    if (states && treeData) {
       const attackerData: { x: number; y: number }[] = [];
       const defenderData: { x: number; y: number }[] = [];
       const totalData: { x: number; y: number }[] = [];
@@ -56,33 +65,22 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
       let cumulativeDefenderTime = 0;
 
       states.forEach((state) => {
-        const stateActions = actions.filter((action) =>
-          state.actions_id.includes(action.id)
+        const optimalAction = state.optimal_action;
+        const actionDetails = treeData.nodes.find(
+          (node) => node.action === optimalAction
         );
 
-        // Calcolo cumulativo dei costi e tempi
-        const attackerCost = stateActions
-          .filter((action) => action.agent === "attacker")
-          .reduce((sum, action) => sum + action.cost, 0);
+        if (actionDetails) {
+          if (actionDetails.role === "Attacker") {
+            cumulativeAttackerCost += actionDetails.cost || 0;
+            cumulativeAttackerTime += actionDetails.time || 0;
+          } else if (actionDetails.role === "Defender") {
+            cumulativeDefenderCost += actionDetails.cost || 0;
+            cumulativeDefenderTime += actionDetails.time || 0;
+          }
+        }
 
-        const attackerTime = stateActions
-          .filter((action) => action.agent === "attacker")
-          .reduce((sum, action) => sum + action.time, 0);
-
-        const defenderCost = stateActions
-          .filter((action) => action.agent === "defender")
-          .reduce((sum, action) => sum + action.cost, 0);
-
-        const defenderTime = stateActions
-          .filter((action) => action.agent === "defender")
-          .reduce((sum, action) => sum + action.time, 0);
-
-        cumulativeAttackerCost += attackerCost;
-        cumulativeAttackerTime += attackerTime;
-        cumulativeDefenderCost += defenderCost;
-        cumulativeDefenderTime += defenderTime;
-
-        // Calcolo della funzione obiettivo
+        // Calculate the objective function
         const attackerObjective =
           wt * cumulativeAttackerTime + wc * cumulativeAttackerCost;
         const defenderObjective =
@@ -94,7 +92,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         totalData.push({ x: state.state_id, y: totalObjective });
       });
 
-      // Divisione dei dati in segmenti colorati e grigi
+      // Split data into colored and gray segments
       const splitData = (data: { x: number; y: number }[]) => ({
         colored: data.filter((point) => point.x <= selectedState),
         gray: data.filter((point) => point.x >= selectedState),
@@ -104,7 +102,7 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
       const defenderSplit = splitData(defenderData);
       const totalSplit = splitData(totalData);
 
-      // Aggiunta dei punti di confine
+      // Add boundary points
       const addBoundary = (colored: any[], gray: any[]) => {
         if (gray.length > 0 && colored.length > 0) {
           gray.unshift(colored[colored.length - 1]);
@@ -124,52 +122,55 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
         totalGray: totalSplit.gray,
       });
     }
-  }, [states, actions, selectedState]);
+  }, [states, treeData, selectedState]);
 
-  if (!data) return <p>Loading chart...</p>;
+  if (!data || !treeData) return <p>Loading chart...</p>;
 
   return (
     <div style={{ height: "400px" }}>
       <Chart>
-      <Settings
-  showLegend={true}
-  legendPosition={Position.Top}
-  tooltip={{
-    customTooltip: ({ header, values }) => {
-      // Filtra i valori per escludere le AreaSeries
-      const filteredValues = values.filter(
-        (value) =>
-          value.seriesIdentifier.specId !== "Attacker Colored Area" &&
-          value.seriesIdentifier.specId !== "Attacker Gray Area" &&
-          value.seriesIdentifier.specId !== "Defender Colored Area" &&
-          value.seriesIdentifier.specId !== "Defender Gray Area" &&
-          value.seriesIdentifier.specId !== "Total Colored Area" &&
-          value.seriesIdentifier.specId !== "Total Gray Area"
-      );
+        <Settings
+          showLegend={true}
+          legendPosition={Position.Top}
+          tooltip={{
+            customTooltip: ({ header, values }) => {
+              // Filter values to exclude AreaSeries
+              const filteredValues = values.filter(
+                (value) =>
+                  ![
+                    "Attacker Colored Area",
+                    "Attacker Gray Area",
+                    "Defender Colored Area",
+                    "Defender Gray Area",
+                    "Total Colored Area",
+                    "Total Gray Area",
+                  ].includes(value.seriesIdentifier.specId)
+              );
 
-      return (
-        <div
-        style={{
-          padding: "10px",
-          backgroundColor: "#fff",
-          border: "1px solid #ccc",
-        }}
-        >
-          <div style={{ fontWeight: "bold" }}>{`State: ${header?.value}`}</div>
-          <ul style={{ margin: 0, padding: "4px" }}>
-            {filteredValues.map((value, index) => (
-              <li key={index} style={{ color: value.color }}>
-                {value.seriesIdentifier.specId}:{" "}
-                <strong>{value.value}</strong>
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
-    },
-  }}
-/>
-
+              return (
+                <div
+                  style={{
+                    padding: "10px",
+                    backgroundColor: "#fff",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <div style={{ fontWeight: "bold" }}>
+                    {`State: ${header?.value}`}
+                  </div>
+                  <ul style={{ margin: 0, padding: "4px" }}>
+                    {filteredValues.map((value, index) => (
+                      <li key={index} style={{ color: value.color }}>
+                        {value.seriesIdentifier.specId}:{" "}
+                        <strong>{value.value}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            },
+          }}
+        />
 
         {/* Attacker */}
         <AreaSeries
@@ -203,16 +204,6 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           yAccessors={["y"]}
           data={data.attackerColored}
           color={attackerColor}
-          lineSeriesStyle={{
-            line:{
-              strokeWidth: 2,
-            },
-            point:{
-              visible: true,
-              radius: 3,
-              fill: attackerColor,
-            }
-          }}
         />
 
         {/* Defender */}
@@ -247,16 +238,6 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           yAccessors={["y"]}
           data={data.defenderColored}
           color={defenderColor}
-          lineSeriesStyle={{
-            line:{
-              strokeWidth: 2,
-            },
-            point:{
-              visible: true,
-              radius: 3,
-              fill: defenderColor,
-            }
-          }}
         />
 
         {/* Total Objective */}
@@ -290,35 +271,15 @@ export const CostChart: React.FC<CostChartProps> = ({ states, actions }) => {
           xAccessor="x"
           yAccessors={["y"]}
           data={data.totalColored}
-          color= {totalColor}
-          lineSeriesStyle={{
-            line:{
-              strokeWidth: 3,
-            },
-            point:{
-              visible: true,
-              radius: 3,
-              fill: totalColor,
-            }
-          }}
+          color={totalColor}
         />
 
         {/* Axes */}
-        <Axis 
-          id="bottom-axis" 
-          position={Position.Bottom} 
-          title="State" 
-          gridLine={{
-            visible: true,
-          }}
-          />
+        <Axis id="bottom-axis" position={Position.Bottom} title="State" />
         <Axis
           id="left-axis"
           position={Position.Left}
           title="Objective Function Value"
-          gridLine={{
-            visible: true,
-          }}
         />
       </Chart>
     </div>

@@ -14,6 +14,9 @@ interface TreeContextType {
   states: any[]; // Array of all states
   setStates: (states: any[]) => void; // Function to update the states
 
+  activeNodes: any[];
+  setActiveNodes: (activeNodes: any[]) => void;
+
   // Policy and Tree names, passed from App.tsx
   selectedPolicy: string | null; // Name of the selected policy
   selectedTree: string | null; // Name of the selected tree
@@ -28,6 +31,8 @@ interface TreeContextType {
   selectedNodeColor: string;
   defenderNodeColor: string;
   attackerNodeColor: string;
+  fixedNodeColor: string;
+  fixedNodeBorderColor: string,
 }
 
 // Create a context with an undefined initial value
@@ -43,19 +48,24 @@ export const TreeContextProvider: React.FC<{
   const [selectedNodesID, setSelectedNodesID] = React.useState<number[]>([]);
   const [selectedNodesLabel, setSelectedNodesLabel] = React.useState<string[]>([]);
   const [selectedState, setSelectedState] = React.useState<number>(0);
-
+  const [activeNodes, setActiveNodes] = React.useState<any[]>([]);
+  
   const palette = ["#003f5c","#2f4b7c","#665191","#a05195","#d45087","#f95d6a","#ff7c43","#ffa600","#7cb518","#e63946","#0466c8"];
   const getColor = (index: number) => palette[index % palette.length];
-  const defenderColor = palette[1]; 
-  const attackerColor = palette[5]; 
-  const activeNodeColor = palette[7];
-  const totalColor = palette[3];
-  const attackerNodeColor = palette[9];
-  const defenderNodeColor = palette[8];
-  const selectedNodeColor = palette[10];
+  
+  const defenderColor = "#2f4b7c";
+  const attackerColor = "#f95d6a";
+  const totalColor = "#a05195";
+  
+  const attackerNodeColor = "#e63946";
+  const defenderNodeColor = "#7cb518";
+  const selectedNodeColor = "#0466c8";
 
-  console.log(selectedTree);
-  console.log(selectedPolicy);
+  const activeNodeColor = "#F4A4AC";
+  
+  const fixedNodeColor = "#D6F3A5";
+  const fixedNodeBorderColor = "#567E10"; 
+  
   return (
     <TreeContext.Provider
       value={{
@@ -70,6 +80,8 @@ export const TreeContextProvider: React.FC<{
         states, // Provide the list of states
         setStates, // Provide function to update the list of states
 
+        activeNodes,
+        setActiveNodes,
         // Names of current selected policy and tree files
         selectedPolicy,
         selectedTree,
@@ -84,6 +96,8 @@ export const TreeContextProvider: React.FC<{
         selectedNodeColor,
         attackerNodeColor,
         defenderNodeColor,
+        fixedNodeColor,
+        fixedNodeBorderColor,
       }}
     >
       {children} {/* Render the child components */}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   EuiPanel,
   EuiText,
@@ -18,46 +18,67 @@ import { useTreeContext } from "./tree_context";
 
 interface StatesVisualizerProps {
   states: {
-    state_id: number;
-    active_nodes: number[];
-    actions_id: number[];
-    action_nodes: number[];
+    optimal_action: string | null; // The optimal action for the state
+    state_data: Record<string, number | boolean>; // State attributes and their values
+    state_id: number; // Unique identifier for the state
   }[];
-  actions: {
-    id: number;
-    agent: string;
-    action: string;
-    cost: number;
-    time: number;
-  }[];
+  treeData: {
+    nodes: {
+      id: number; // Node ID
+      label: string; // Node label
+      name: string; // Node name
+      action?: string; // Action associated with the node
+      cost?: number; // Cost of the action
+      time?: number; // Time required for the action
+      role?: string; // Role associated with the node (e.g., Attacker, Defender)
+    }[];
+    edges: { id_source: number; id_target: number }[]; // Connections between nodes
+  } | null;
 }
 
 export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
   states,
-  actions,
+  treeData,
 }) => {
-  // Context for managing selected state and nodes
   const {
     selectedState,
     setSelectedState,
+    setActiveNodes,
     selectedNodeColor,
-    selectedNodesID,
-    setSelectedNodesID,
+    selectedNodesLabel,
+    setSelectedNodesLabel,
   } = useTreeContext();
 
-  // Toggle node selection
-  const handleElementClick = (index: number) => {
-    const updatedNodes = selectedNodesID.includes(index)
-      ? selectedNodesID.filter((id) => id !== index)
-      : [...selectedNodesID, index];
-    setSelectedNodesID(updatedNodes);
+  // Toggles selection of a node based on its label
+  const handleElementClick = (label: string) => {
+    const updatedLabels = selectedNodesLabel.includes(label)
+      ? selectedNodesLabel.filter((l) => l !== label)
+      : [...selectedNodesLabel, label];
+    setSelectedNodesLabel(updatedLabels);
   };
 
-  // Retrieve action details by action ID
-  const getActionDetails = (actionId: number) =>
-    actions.find((action) => action.id === actionId);
+  // Extracts active nodes from state_data
+  const extractActiveNodes = (stateData: Record<string, number | boolean>) => {
+    if (!stateData) {
+      return [];
+    }
+    return Object.entries(stateData).map(([key, value]) => ({
+      label: key,
+      active: typeof value === "boolean" ? (value ? 1 : 0) : value,
+    }));
+  };
 
-  // Calculate cumulative costs for a given state
+  // Updates activeNodes whenever the selected state changes
+  useEffect(() => {
+    if (selectedState >= 0 && states[selectedState]) {
+      const activeNodesMap = extractActiveNodes(
+        states[selectedState].state_data
+      );
+      setActiveNodes(activeNodesMap);
+    }
+  }, [selectedState, states, setActiveNodes]);
+
+  // Calculates cumulative costs for a given state index
   const calculateCumulativeCosts = (stateIndex: number) => {
     let totalTimeAttacker = 0;
     let totalCostAttacker = 0;
@@ -65,27 +86,42 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     let totalCostDefender = 0;
 
     for (let i = 1; i <= stateIndex; i++) {
-      states[i].actions_id.forEach((actionId) => {
-        const action = getActionDetails(actionId);
-        if (action) {
-          if (action.agent === "attacker") {
-            totalTimeAttacker += action.time;
-            totalCostAttacker += action.cost;
-          } else if (action.agent === "defender") {
-            totalTimeDefender += action.time;
-            totalCostDefender += action.cost;
+      const actionLabel = states[i].optimal_action;
+      if (actionLabel) {
+        const actionDetails = treeData?.nodes.find(
+          (node) => node.action === actionLabel
+        );
+        if (actionDetails) {
+          if (actionDetails.role === "Attacker") {
+            totalTimeAttacker += actionDetails.time || 0;
+            totalCostAttacker += actionDetails.cost || 0;
+          } else if (actionDetails.role === "Defender") {
+            totalTimeDefender += actionDetails.time || 0;
+            totalCostDefender += actionDetails.cost || 0;
           }
         }
-      });
+      }
     }
 
-    const wt = 0.5; // Weight for time
-    const wc = 0.5; // Weight for cost
+    const wt = 1; // Weight for time
+    const wc = 1; // Weight for cost
     return {
       attackerObjective: wt * totalTimeAttacker + wc * totalCostAttacker,
       defenderObjective: wt * totalTimeDefender + wc * totalCostDefender,
     };
   };
+
+  // Fallback message when treeData is unavailable
+  if (!treeData) {
+    return (
+      <div>
+        <EuiText color="danger">
+          <h3>Tree data not available</h3>
+          <p>Please load the tree data to visualize the states.</p>
+        </EuiText>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -96,11 +132,13 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
         flexDirection: "column",
       }}
     >
-      {states.map((policy, index) => {
+      {states.map((state, index) => {
+        const activeNodesMap = extractActiveNodes(state.state_data);
         const cumulativeCosts = calculateCumulativeCosts(index);
+
         return (
-          <React.Fragment key={policy.state_id}>
-            {/* Render transition actions and icon for states > 0 */}
+          <React.Fragment key={state.state_id}>
+            {/* Transition between states */}
             {index > 0 && (
               <EuiFlexGroup
                 alignItems="center"
@@ -112,42 +150,43 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                   <EuiIcon type="sortDown" size="l" />
                 </EuiFlexItem>
                 <EuiFlexItem grow={false}>
-                  {states[index].actions_id.map((actionId, actionIndex) => {
-                    const action = getActionDetails(actionId);
-                    return (
-                      <EuiToolTip
-                        key={actionIndex}
-                        position="top"
-                        content={`Agent: ${action?.agent}, Cost: ${action?.cost}, Time: ${action?.time}`}
-                      >
-                        <EuiBadge
-                          color={
-                            action?.agent === "attacker" ? "danger" : "success"
-                          }
-                          style={{
-                            cursor: "pointer",
-                            marginRight: "8px",
-                          }}
-                        >
-                          {action?.action || "Unknown Action"}
-                        </EuiBadge>
-                      </EuiToolTip>
-                    );
-                  })}
+                  <EuiToolTip
+                    position="top"
+                    content={`Optimal Action: ${state.optimal_action}`}
+                  >
+                    <EuiBadge
+                      color={
+                        treeData.nodes.find(
+                          (node) => node.label === state.optimal_action
+                        )?.role === "Attacker"
+                          ? "danger"
+                          : "success"
+                      }
+                      style={{
+                        cursor: "pointer",
+                        marginRight: "8px",
+                      }}
+                    >
+                      {state.optimal_action || "Unknown Action"}
+                    </EuiBadge>
+                  </EuiToolTip>
                 </EuiFlexItem>
               </EuiFlexGroup>
             )}
 
-            {/* Render state panel and costs */}
+            {/* Current state */}
             <EuiFlexGroup alignItems="center" gutterSize="m">
               <EuiFlexItem grow={false}>
-                <EuiToolTip position="left" content={`State ID: ${policy.state_id}`}>
+                <EuiToolTip
+                  position="left"
+                  content={`State ID: ${state.state_id}`}
+                >
                   <EuiPanel
                     paddingSize="none"
                     style={{
                       backgroundColor: "white",
                       border: `2px solid ${
-                        selectedState === policy.state_id
+                        selectedState === state.state_id
                           ? selectedNodeColor
                           : "black"
                       }`,
@@ -159,7 +198,7 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                       height: "60px",
                       padding: "8px",
                     }}
-                    onClick={() => setSelectedState(policy.state_id)}
+                    onClick={() => setSelectedState(state.state_id)}
                   >
                     <EuiText>
                       <p
@@ -171,21 +210,14 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                         }}
                       >
                         [
-                        {policy.active_nodes.map((value, idx) => {
-                          const isSelected = selectedNodesID.includes(idx);
-                          const prevValue =
-                            index > 0
-                              ? states[index - 1].active_nodes[idx]
-                              : null;
-                          const hasChanged =
-                            prevValue !== null && prevValue !== value;
-
+                        {activeNodesMap.map(({ label, active }, idx) => {
+                          const isSelected = selectedNodesLabel.includes(label);
                           return (
                             <span key={idx}>
                               <span
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleElementClick(idx);
+                                  handleElementClick(label);
                                 }}
                                 onMouseOver={(e) => {
                                   e.currentTarget.style.color = selectedNodeColor;
@@ -195,23 +227,23 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
                                   e.currentTarget.style.color = isSelected
                                     ? selectedNodeColor
                                     : "black";
-                                  e.currentTarget.style.fontWeight =
-                                    isSelected || hasChanged ? "bold" : "normal";
+                                  e.currentTarget.style.fontWeight = isSelected
+                                    ? "bold"
+                                    : "normal";
                                 }}
                                 style={{
                                   cursor: "pointer",
                                   color: isSelected
                                     ? selectedNodeColor
                                     : "black",
-                                  fontWeight:
-                                    isSelected || hasChanged ? "bold" : "normal",
+                                  fontWeight: isSelected ? "bold" : "normal",
                                   transition:
                                     "color 0.2s ease-in-out, font-weight 0.2s ease-in-out",
                                 }}
                               >
-                                {value}
+                                {active}
                               </span>
-                              {idx < policy.active_nodes.length - 1 && ", "}
+                              {idx < activeNodesMap.length - 1 && ", "}
                             </span>
                           );
                         })}

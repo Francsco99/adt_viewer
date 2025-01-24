@@ -14,7 +14,7 @@ interface TreeState {
 // Props for the TreeStateNavigator component
 interface TreeStateNavigatorProps {
   treeData: {
-    nodes: { id: number; label: string; role: string; type: string; hidden?: boolean; }[]; // Node data for the tree
+    nodes: { id: number; label: string; name:string; role: string; type: string; hidden?: boolean; }[]; // Node data for the tree
     edges: { id_source: number; id_target: number }[]; // Edges data for the tree
   };
   states: TreeState[]; // Array of tree states
@@ -26,7 +26,6 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
   states,
 }) => {
   const { selectedState } = useTreeContext(); // Get the currently selected state from context
-  const currentActiveNodes = states[selectedState]?.active_nodes || []; // Determine active nodes for the selected state
  
   return (
     <div>
@@ -44,7 +43,7 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
       </EuiFlexGroup>
       {/* Render the tree visualizer with the active nodes for the current state */}
       {treeData && (
-        <TreeVisualizer data={treeData} activeNodes={currentActiveNodes} />
+        <TreeVisualizer data={treeData}/>
       )}
     </div>
   );

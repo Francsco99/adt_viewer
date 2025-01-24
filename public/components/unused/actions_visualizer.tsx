@@ -6,7 +6,7 @@ import {
   EuiSpacer,
   EuiText,
 } from "@elastic/eui";
-import { useTreeContext } from "./tree_context";
+import { useTreeContext } from "../tree_context";
 
 interface TreeState {
   state_id: number;

@@ -3,11 +3,13 @@
         "nodes": [
             {
                 "id": 0,
-                "label": "Data Exfiltration",
+                "name": "Data Exfiltration",
+                "label": "DataExfiltration",
                 "type": "Goal"
             },
             {
                 "id": 1,
+                "name": "Exfiltrate Data",
                 "label": "exfiltrateData",
                 "type": "Action",
                 "action": "exfiltrateData",
@@ -17,11 +19,13 @@
             },
             {
                 "id": 2,
-                "label": "Access to MySQL",
+                "name": "Access To My S Q L",
+                "label": "AccesstoMySQL",
                 "type": "Attribute"
             },
             {
                 "id": 3,
+                "name": "Get Login Data",
                 "label": "getLoginData",
                 "type": "Action",
                 "action": "getLoginData",
@@ -31,11 +35,13 @@
             },
             {
                 "id": 4,
-                "label": "Access to Sensitive Files",
+                "name": "Access To Sensitive Files",
+                "label": "AccesstoSensitiveFiles",
                 "type": "Attribute"
             },
             {
                 "id": 5,
+                "name": "Get Files",
                 "label": "getFiles",
                 "type": "Action",
                 "action": "getFiles",
@@ -45,12 +51,14 @@
             },
             {
                 "id": 6,
-                "label": "Misconfigured Apache",
+                "name": "Misconfigured Apache",
+                "label": "MisconfiguredApache",
                 "type": "Attribute"
             },
             {
                 "id": 7,
-                "label": "Reconfigure Apache",
+                "name": "Reconfigure Apache",
+                "label": "ReconfigureApache",
                 "type": "Action",
                 "action": "reconfigureApache",
                 "cost": 50,
@@ -59,11 +67,13 @@
             },
             {
                 "id": 8,
-                "label": "Access to Reverse Shell",
+                "name": "Access To Reverse Shell",
+                "label": "AccesstoReverseShell",
                 "type": "Attribute"
             },
             {
                 "id": 9,
+                "name": "Path Traversal",
                 "label": "pathTraversal",
                 "type": "Action",
                 "action": "pathTraversal",
@@ -73,11 +83,13 @@
             },
             {
                 "id": 10,
-                "label": "Web Recon Succesful",
+                "name": "Web Recon Succesful",
+                "label": "WebReconSuccesful",
                 "type": "Attribute"
             },
             {
                 "id": 11,
+                "name": "Web Recon",
                 "label": "webRecon",
                 "type": "Action",
                 "action": "webRecon",
@@ -87,17 +99,20 @@
             },
             {
                 "id": 12,
-                "label": "Webserver Publicly Exposed",
+                "name": "Webserver Publicly Exposed",
+                "label": "WebserverPubliclyExposed",
                 "type": "Attribute"
             },
             {
                 "id": 13,
-                "label": "CGI scripts enabled",
+                "name": "C G I Scripts Enabled",
+                "label": "CGIscriptsenabled",
                 "type": "Attribute"
             },
             {
                 "id": 14,
-                "label": "Disable CGI Scripts",
+                "name": "Disable C G I Scripts",
+                "label": "DisableCGIScripts",
                 "type": "Action",
                 "action": "disableCGIScripts",
                 "cost": 45,
@@ -106,12 +121,14 @@
             },
             {
                 "id": 15,
-                "label": "Vulnerable Apache HTTP Server Version",
+                "name": "Vulnerable Apache H T T P Server Version",
+                "label": "VulnerableApacheHTTPServerVersion",
                 "type": "Attribute"
             },
             {
                 "id": 16,
-                "label": "Update Apache",
+                "name": "Update Apache",
+                "label": "UpdateApache",
                 "type": "Action",
                 "action": "updateApache",
                 "cost": 20,
@@ -120,7 +137,8 @@
             },
             {
                 "id": 17,
-                "label": "Change Files Permissions",
+                "name": "Change Files Permissions",
+                "label": "ChangeFilesPermissions",
                 "type": "Action",
                 "action": "changeFilePermissions",
                 "cost": 60,
@@ -129,12 +147,14 @@
             },
             {
                 "id": 18,
-                "label": "Unencrypted Files",
+                "name": "Unencrypted Files",
+                "label": "UnencryptedFiles",
                 "type": "Attribute"
             },
             {
                 "id": 19,
-                "label": "Encrypt File",
+                "name": "Encrypt File",
+                "label": "EncryptFile",
                 "type": "Action",
                 "action": "encryptFile",
                 "cost": 150,
@@ -143,7 +163,8 @@
             },
             {
                 "id": 20,
-                "label": "Change Credentials",
+                "name": "Change Credentials",
+                "label": "ChangeCredentials",
                 "type": "Action",
                 "action": "changeCredentials",
                 "cost": 200,
@@ -152,11 +173,13 @@
             },
             {
                 "id": 21,
-                "label": "Access to Execute Arbitrary Code",
+                "name": "Access To Execute Arbitrary Code",
+                "label": "AccesstoExecuteArbitraryCode",
                 "type": "Attribute"
             },
             {
                 "id": 22,
+                "name": "Buffer Overflow",
                 "label": "bufferOverflow",
                 "type": "Action",
                 "action": "bufferOverflow",
@@ -166,11 +189,13 @@
             },
             {
                 "id": 23,
-                "label": "Web Recon Succesful",
+                "name": "Web Recon Succesful",
+                "label": "WebReconSuccesful",
                 "type": "Attribute"
             },
             {
                 "id": 24,
+                "name": "Web Recon",
                 "label": "webRecon",
                 "type": "Action",
                 "action": "webRecon",
@@ -180,17 +205,20 @@
             },
             {
                 "id": 25,
-                "label": "Webserver Publicly Exposed",
+                "name": "Webserver Publicly Exposed",
+                "label": "WebserverPubliclyExposed",
                 "type": "Attribute"
             },
             {
                 "id": 26,
-                "label": "SOCKS5 Proxy Active",
+                "name": "S O C K S5 Proxy Active",
+                "label": "SOCKS5ProxyActive",
                 "type": "Attribute"
             },
             {
                 "id": 27,
-                "label": "Deactivate SOCKS5 proxy",
+                "name": "Deactivate S O C K S5 Proxy",
+                "label": "DeactivateSOCKS5proxy",
                 "type": "Action",
                 "action": "deactivateSOCKS5Proxy",
                 "cost": 120,

@@ -7,10 +7,11 @@ import { useTreeContext } from "./tree_context";
 interface TreeNode {
   id: number; // Node ID
   label: string; // Node label
+  name: string;
   role: string;
   type: string;
-  hidden?: boolean; // NEW: Optional attribute to determine hidden state
-  parent?: TreeNode | null; // NEW: Parent reference for hierarchy
+  hidden?: boolean; // Optional attribute to determine hidden state
+  parent?: TreeNode | null; // Parent reference for hierarchy
   children?: TreeNode[]; // Child nodes
 }
 
@@ -20,26 +21,26 @@ interface TreeVisualizerProps {
     nodes: {
       id: number;
       label: string;
+      name: string;
       role: string;
       type: string;
       hidden?: boolean;
     }[]; // Node data
     edges: { id_source: number; id_target: number }[]; // Edge data
   };
-  activeNodes?: number[]; // Nodes active in the current state
 }
 
-export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
-  data,
-  activeNodes = [],
-}) => {
+export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({ data }) => {
   const containerRef = useRef<HTMLDivElement | null>(null); // Reference to the container div
   const svgRef = useRef<SVGSVGElement | null>(null); // Reference to the SVG element
   const gRef = useRef<SVGGElement | null>(null); // Reference to the group element
   const {
-    selectedNodesID,
-    setSelectedNodesID,
+    activeNodes, // Fetch activeNodes from context
+    selectedNodesLabel,
+    setSelectedNodesLabel,
     activeNodeColor,
+    fixedNodeColor, // Fixed node fill color from context
+    fixedNodeBorderColor, // Fixed node border color from context
     selectedNodeColor,
     defenderNodeColor,
     attackerNodeColor,
@@ -63,7 +64,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
     };
   });
 
-  // NEW: Function to check if a node or its ancestors are hidden
+  // Function to check if a node or its ancestors are hidden
   function isHidden(node: TreeNode): boolean {
     return node.hidden || (node.parent ? isHidden(node.parent) : false);
   }
@@ -128,26 +129,31 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .append("g")
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .on("click", (event, d) => {
-        //const nodeId = d.data.id;
         const nodeLabel = d.data.label;
 
         // Select all nodes with the same label
         const nodesWithSameLabel = data.nodes.filter(
           (node) => node.label === nodeLabel
         );
-        const nodeIdsWithSameLabel = nodesWithSameLabel.map((node) => node.id);
 
-        const isAlreadySelected = nodeIdsWithSameLabel.every((id) =>
-          selectedNodesID.includes(id)
+        const isAlreadySelected = nodesWithSameLabel.every((node) =>
+          selectedNodesLabel.includes(node.label)
         );
 
         if (isAlreadySelected) {
-          setSelectedNodesID(
-            selectedNodesID.filter((id) => !nodeIdsWithSameLabel.includes(id))
+          // Remove all nodes with this label from selection
+          setSelectedNodesLabel(
+            selectedNodesLabel.filter(
+              (label) => !nodesWithSameLabel.some((node) => node.label === label)
+            )
           );
         } else {
-          setSelectedNodesID([
-            ...new Set([...selectedNodesID, ...nodeIdsWithSameLabel]),
+          // Add all nodes with this label to selection
+          setSelectedNodesLabel([
+            ...new Set([
+              ...selectedNodesLabel,
+              ...nodesWithSameLabel.map((node) => node.label),
+            ]),
           ]);
         }
       });
@@ -155,22 +161,31 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
     // Add shapes for nodes
     nodesGroup.each(function (d) {
       const group = select(this);
+
+      // Determine the fill and border colors based on activeNodes value
+      const activeNodeEntry = activeNodes.find(
+        (node) => node.label === d.data.label
+      );
       const fillColor = isHidden(d.data)
         ? "lightgray"
-        : activeNodes[d.data.id] === 1
-        ? activeNodeColor
-        : "white";
+        : activeNodeEntry?.active === 2
+        ? fixedNodeColor // Fixed color for active value 2
+        : activeNodeEntry?.active === 1
+        ? activeNodeColor // Active color for active value 1
+        : "white"; // Default white for inactive nodes
+
       const strokeColor = isHidden(d.data)
         ? "gray"
-        : selectedNodesID.includes(d.data.id)
+        : activeNodeEntry?.active === 2
+        ? fixedNodeBorderColor // Fixed border color for active value 2
+        : selectedNodesLabel.includes(d.data.label)
         ? selectedNodeColor
         : d.data.role === "Defender"
         ? defenderNodeColor
         : attackerNodeColor;
 
-        const strokeDashArray =
-      d.data.type === "Action" && d.data.role === "Attacker" ? "15,5" : null; // Dashed border for matching nodes
-
+      const strokeDashArray =
+        d.data.type === "Action" && d.data.role === "Attacker" ? "15,5" : null;
 
       if (d.data.role === "Defender") {
         group
@@ -181,8 +196,11 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           .attr("y", -25)
           .attr("fill", fillColor)
           .attr("stroke", strokeColor)
-          .attr("stroke-width", selectedNodesID.includes(d.data.id) ? 7 : 4)
-          .attr("stroke-dasharray",strokeDashArray);
+          .attr(
+            "stroke-width",
+            selectedNodesLabel.includes(d.data.label) ? 7 : 4
+          )
+          .attr("stroke-dasharray", strokeDashArray);
       } else {
         group
           .append("ellipse")
@@ -190,8 +208,11 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
           .attr("ry", 30)
           .attr("fill", fillColor)
           .attr("stroke", strokeColor)
-          .attr("stroke-width", selectedNodesID.includes(d.data.id) ? 7 : 4)
-          .attr("stroke-dasharray",strokeDashArray);
+          .attr(
+            "stroke-width",
+            selectedNodesLabel.includes(d.data.label) ? 7 : 4
+          )
+          .attr("stroke-dasharray", strokeDashArray);
       }
     });
 
@@ -202,7 +223,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
       .attr("dy", ".35em")
       .attr("font-size", "30px")
       .attr("font-weight", (d) =>
-        selectedNodesID.includes(d.data.id) ? "bold" : "normal"
+        selectedNodesLabel.includes(d.data.label) ? "bold" : "normal"
       )
       .attr("fill", "black")
       .text((d) => d.data.id);
@@ -238,7 +259,7 @@ export const TreeVisualizer: React.FC<TreeVisualizerProps> = ({
   }, [
     data,
     activeNodes,
-    selectedNodesID,
+    selectedNodesLabel,
     dimensions,
     zoomTransform.x,
     zoomTransform.y,
@@ -275,6 +296,7 @@ function buildHierarchy(
   nodes: {
     id: number;
     label: string;
+    name: string;
     role: string;
     type: string;
     hidden?: boolean;

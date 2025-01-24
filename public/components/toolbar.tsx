@@ -6,8 +6,6 @@ import {
   EuiHeaderSectionItemButton,
   EuiToolTip,
   EuiIcon,
-  EuiText,
-  EuiLoadingSpinner,
   EuiFilePicker,
   EuiButton,
   EuiModal,
@@ -75,11 +73,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 }) => {
   const {
     setSelectedState,
-    selectedState,
     selectedNodesID,
     setSelectedNodesID,
   } = useTreeContext(); // Access context values for selected state and nodes
-  const [isCycling, setIsCycling] = useState(false); // Cycling state indicator
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const clearNodesRef = useRef<any>(null); // Reference to trigger animation on clear nodes
@@ -99,12 +95,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       setSelectedState(states[currentStateIndex + 1].state_id);
     }
   };
-
-  // Start cycling through states
-  const startCycling = () => setIsCycling(true);
-
-  // Stop cycling through states
-  const stopCycling = () => setIsCycling(false);
 
   // Clear the selected nodes and animate the button
   const clearSelectedNodes = () => {
@@ -173,6 +163,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
     const file = files[0];
     await handleFileUploading(file);
+
+    closeModal();
   };
 
 
@@ -207,27 +199,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </EuiHeaderSectionItemButton>
         </EuiToolTip>
 
-        {/* Start Cycling */}
-        <EuiToolTip position="bottom" content="Start cycling through states">
-          <EuiHeaderSectionItemButton
-            aria-label="Start Cycling"
-            isDisabled={isCycling} // Disable if already cycling
-            onClick={startCycling}
-          >
-            <EuiIcon type="play" />
-          </EuiHeaderSectionItemButton>
-        </EuiToolTip>
-
-        {/* Stop Cycling */}
-        <EuiToolTip position="bottom" content="Stop cycling through states">
-          <EuiHeaderSectionItemButton
-            aria-label="Stop Cycling"
-            isDisabled={!isCycling} // Disable if not cycling
-            onClick={stopCycling}
-          >
-            <EuiIcon type="stop" />
-          </EuiHeaderSectionItemButton>
-        </EuiToolTip>
 
         {/* Clear Nodes Button */}
         <ClearNodesButton
@@ -235,16 +206,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           selectedNodesCount={selectedNodesID.length}
           onClear={clearSelectedNodes}
         />
-
-        {/* Current State Display 
-        <EuiText>
-          <span>Current State: </span>
-          <span style={{ fontWeight: "bold" }}>{selectedState}</span>
-        </EuiText>
-        */}
-
-        {/* Cycling Indicator */}
-        {isCycling && <EuiLoadingSpinner size="l" />}
       </EuiHeaderSectionItem>
 
       {/* Upload Button */}

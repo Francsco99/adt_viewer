@@ -22,7 +22,6 @@ import {
 
 import { CoreStart } from "../../../../src/core/public";
 import { NavigationPublicPluginStart } from "../../../../src/plugins/navigation/public";
-import { ActionsVisualizer } from "./actions_visualizer";
 import { ActionsManager } from "./actions_manager";
 import { CostChart } from "./cost_chart";
 import { NodeInfo } from "./node_info";
@@ -48,7 +47,6 @@ export const AdtViewerApp = ({
   const [treeData, setTreeData] = useState(null);
   const [states, setStates] = useState([]);
   const [currentStateIndex, setCurrentStateIndex] = useState(0);
-  const [actions, setActions] = useState([]);
   const [policiesList, setPoliciesList] = useState<string[]>([]);
   const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
   const [treesList, setTreesList] = useState<string[]>([]);
@@ -57,22 +55,14 @@ export const AdtViewerApp = ({
   const [isTreePopoverOpen, setIsTreePopoverOpen] = useState(false);
 
   useEffect(() => {
-    // Carica actions.json
-    http
-      .get("/api/adt_viewer/actions")
-      .then((actionsRes) => setActions(actionsRes))
-      .catch((error) =>
-        notifications.toasts.addDanger("Failed to load actions data")
-      );
-      
     // Carica la lista delle policy
     http
       .get("/api/adt_viewer/policies_list")
       .then((res) => {
         setPoliciesList(res.policies);
         if (res.policies.length>0) {
-          setSelectedPolicy("policy.json");
-          loadPolicy("policy.json");
+          setSelectedPolicy(res.policies[0]);
+          loadPolicy(res.policies[0]);
         }
       })
       .catch((error) =>
@@ -291,7 +281,7 @@ export const AdtViewerApp = ({
                             }}
                           >
                             <StatesVisualizer
-                              actions={actions}
+                              treeData={treeData}
                               states={states}
                             />
                           </div>
@@ -327,18 +317,7 @@ export const AdtViewerApp = ({
 
             {/* Seconda riga */}
             <EuiFlexGroup gutterSize="m">
-              <EuiFlexItem grow={1}>
-                <EuiPanel>
-                  <EuiTitle size="m">
-                    <h2>Actions Visualizer</h2>
-                  </EuiTitle>
-                  <ActionsVisualizer
-                    states={states} actions={actions}
-                  />
-                </EuiPanel>
-              </EuiFlexItem>
-
-              <EuiFlexItem grow={2}>
+              <EuiFlexItem grow={3}>
                 <EuiPanel>
                   <EuiTitle size="m">
                     <h2>Charts</h2>
@@ -350,7 +329,7 @@ export const AdtViewerApp = ({
                         name: "Cost Chart",
                         content: (
                           <div style={{ padding: "16px" }}>
-                            <CostChart states={states} actions={actions} />
+                            <CostChart states={states} treeData={treeData} />
                           </div>
                         ),
                       },
@@ -363,7 +342,7 @@ export const AdtViewerApp = ({
                               http={http}
                               notifications={notifications}
                               policiesList={policiesList}
-                              actions={actions}
+                              treeData={treeData}
                             />
                           </div>
                         ),
@@ -374,7 +353,7 @@ export const AdtViewerApp = ({
                       name: "Cost Chart",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <CostChart states={states} actions={actions} />
+                          <CostChart states={states} treeData={treeData} />
                         </div>
                       ),
                     }}
