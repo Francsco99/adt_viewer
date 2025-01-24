@@ -187,7 +187,6 @@ export const AdtViewerApp = ({
               alignItems="center"
               gutterSize="xs"
             >
-              
               <EuiFlexItem grow={false}>
                 <EuiPopover
                   button={
