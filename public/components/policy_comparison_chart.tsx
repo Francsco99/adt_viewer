@@ -218,6 +218,19 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                     stroke: getColor(index), // Assign color from context
                   },
                 }}
+                pointStyleAccessor={(datum) => {
+                  if (datum.x === 0) {
+                    return {
+                      radius: 0,
+                    };
+                  }
+                  return {
+                    visible: true,
+                    radius: 3,
+                    strokeWidth: 6,
+                    stroke: getColor(index), // Colore bordo
+                  };
+                }}
                 data={[
                   { x: 0, y: 0, policy: metric.policy }, // Start point
                   { x: metric.time, y: metric.cost, ...metric }, // End point

@@ -50,8 +50,8 @@ export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
   } | null>(null);
 
   // Weights for the objective function
-  const wt = 0.5;
-  const wc = 0.5;
+  const wt = 1;
+  const wc = 1;
 
   useEffect(() => {
     if (states && treeData) {
