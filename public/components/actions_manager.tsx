@@ -28,7 +28,7 @@ interface TreeData {
 }
 
 interface ActionsManagerProps {
-  treeData: TreeData | null; // Tree data containing nodes and edges
+  treeData: TreeData | null;
   http: CoreStart["http"];
   notifications: CoreStart["notifications"];
 }
@@ -38,23 +38,23 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   http,
   notifications,
 }) => {
+  const { selectedNodesLabel, setSelectedNodesLabel, selectedTree } =
+    useTreeContext();
+
+  const [flaggedActions, setFlaggedActions] = useState<string[]>([]);
+  const [showAllActions, setShowAllActions] = useState(false);
+
+  useEffect(() => {
+    const hiddenLabels = treeData?.nodes
+      .filter((node) => node.type === "Action" && node.hidden)
+      .map((node) => node.label) || [];
+    setFlaggedActions(hiddenLabels);
+  }, [treeData]);
+
   if (!treeData) {
     return <p>Loading tree data...</p>;
   }
 
-  const [flaggedActions, setFlaggedActions] = useState<string[]>([]);
-  const [showAllActions, setShowAllActions] = useState(false);
-  const { selectedTree } = useTreeContext();
-
-  // Inizializza flaggedActions in base ai nodi con hidden=true
-  useEffect(() => {
-    const hiddenLabels = treeData.nodes
-      .filter((node) => node.type === "Action" && node.hidden)
-      .map((node) => node.label);
-    setFlaggedActions(hiddenLabels);
-  }, [treeData]);
-
-  // Filtra i nodi di tipo "Action" dal treeData e rimuovi duplicati
   const actionNodes = Array.from(
     new Map(
       treeData.nodes
@@ -71,9 +71,15 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     );
   };
 
+  const toggleNodeSelection = (label: string) => {
+    setSelectedNodesLabel([
+      ...selectedNodesLabel.filter((selectedLabel) => selectedLabel !== label),
+      ...(selectedNodesLabel.includes(label) ? [] : [label]),
+    ]);
+  };
+
   const handleExport = async () => {
     try {
-      // Creazione della struttura JSON con tutti i nodi e gli edge originali
       const updatedTreeData = {
         original_name: selectedTree,
         tree: {
@@ -86,22 +92,20 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           edges: treeData.edges,
         },
       };
-  
-      // Invia il JSON al server Python
+
       const response = await http.post("http://localhost:5002/receive_json", {
         body: JSON.stringify(updatedTreeData),
         headers: {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (!response || typeof response !== "object" || !response.file_name) {
         throw new Error("Invalid response from server: missing file_name");
       }
-  
+
       const { file_name, tree_data, policy_content } = response;
-  
-      // Esegui le richieste di salvataggio in parallelo
+
       try {
         const [savePolicyResponse, saveTreeResponse] = await Promise.all([
           http.post(`/api/adt_viewer/save_policy/${file_name}`, {
@@ -118,10 +122,9 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           }),
         ]);
 
-        console.log("Policy content salvato correttamente:", savePolicyResponse);
-        console.log("Tree data salvato correttamente:", saveTreeResponse);
+        console.log("Policy content saved:", savePolicyResponse);
+        console.log("Tree data saved:", saveTreeResponse);
 
-        // Notifica di successo
         notifications.toasts.addSuccess(
           `File saved successfully as ${file_name} in server/data/trees and policies`
         );
@@ -142,7 +145,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
       );
     }
   };
-  
+
   const columns = [
     {
       field: "role",
@@ -158,6 +161,15 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
       field: "label",
       name: "Action",
       sortable: true,
+      render: (label: string) => (
+        <span
+          style={{
+            fontWeight: selectedNodesLabel.includes(label) ? "bold" : "normal",
+          }}
+        >
+          {label}
+        </span>
+      ),
     },
     {
       field: "cost",
@@ -184,7 +196,10 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           <EuiIcon
             type="flag"
             color={flaggedActions.includes(item.label) ? "danger" : "subdued"}
-            onClick={() => toggleFlag(item.label)}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFlag(item.label);
+            }}
             style={{ cursor: "pointer" }}
             aria-label={`Flag action ${item.label}`}
           />
@@ -258,11 +273,16 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         items={paginatedActions}
         columns={columns}
         rowProps={(item) => {
-          if (flaggedActions.includes(item.label)) {
-            return { style: { backgroundColor: "rgba(255, 0, 0, 0.1)" } };
-          }
-          return {};
-        }}
+          const isFlagged = flaggedActions.includes(item.label);
+        
+          return {
+            onClick: () => toggleNodeSelection(item.label), // Gestisce la selezione
+            style: {
+              backgroundColor: isFlagged ? "rgba(255, 0, 0, 0.1)" : undefined, // Colore rosso se flaggato
+              cursor: "pointer", // Cambia il cursore per indicare che è cliccabile
+            },
+          };
+        }}             
         pagination={{
           pageIndex,
           pageSize,
