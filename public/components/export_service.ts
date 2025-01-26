@@ -6,20 +6,24 @@ interface ExportResponse {
   policy_content: object;
 }
 
+/**
+ * Exports JSON data to the server.
+ * @param http HTTP object from CoreStart.
+ * @param notifications Notifications object from CoreStart.
+ * @param payload JSON object to send.
+ * @returns A response containing `file_name`, `tree_data`, and `policy_content`.
+ */
 export async function exportData(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
-  payload: object | string, // Può essere un JSON o un XML
-  isXml: boolean = false // Indica se il payload è XML
+  payload: object // JSON only
 ): Promise<ExportResponse | null> {
   try {
-    const headers = {
-      "Content-Type": isXml ? "application/xml" : "application/json",
-    };
-
     const response = await http.post("http://localhost:5002/receive_json", {
-      body: typeof payload === "string" ? payload : JSON.stringify(payload),
-      headers,
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     if (
@@ -44,6 +48,60 @@ export async function exportData(
   }
 }
 
+/**
+ * Uploads an XML file to the server.
+ * @param http HTTP object from CoreStart.
+ * @param notifications Notifications object from CoreStart.
+ * @param file XML file to upload.
+ * @returns A response containing `file_name`, `tree_data`, and `policy_content`.
+ */
+export async function uploadFile(
+  http: CoreStart["http"],
+  notifications: CoreStart["notifications"],
+  file: File
+): Promise<ExportResponse | null> {
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+  try {
+    const response = await http.post("http://localhost:5002/receive_xml", {
+      body: formData,
+      headers: {
+        "Content-Type": undefined,
+      },
+    });
+
+    if (
+      !response ||
+      typeof response !== "object" ||
+      !response.file_name ||
+      !response.tree_data ||
+      !response.policy_content
+    ) {
+      throw new Error("Invalid response from server: missing required fields.");
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Error during file upload:", error);
+    notifications.toasts.addDanger(
+      `Error during file upload: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+    return null;
+  }
+}
+
+/**
+ * Saves the data returned from the server (tree_data and policy_content).
+ * @param http HTTP object from CoreStart.
+ * @param notifications Notifications object from CoreStart.
+ * @param fileName Name of the saved file.
+ * @param treeData Tree data returned by the server.
+ * @param policyContent Policy content returned by the server.
+ */
 export async function saveData(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
@@ -53,10 +111,13 @@ export async function saveData(
 ): Promise<void> {
   try {
     const [savePolicyResponse, saveTreeResponse] = await Promise.all([
+      // Save the policy content
       http.post(`/api/adt_viewer/save_policy/${fileName}`, {
         body: JSON.stringify(policyContent),
         headers: { "Content-Type": "application/json" },
       }),
+
+      // Save the tree data
       http.post(`/api/adt_viewer/save_tree/${fileName}`, {
         body: JSON.stringify(treeData),
         headers: { "Content-Type": "application/json" },
@@ -66,11 +127,14 @@ export async function saveData(
     console.log("Policy content saved:", savePolicyResponse);
     console.log("Tree data saved:", saveTreeResponse);
 
+    // Success notification
     notifications.toasts.addSuccess(
       `File saved successfully as ${fileName} in server/data/trees and policies`
     );
   } catch (saveError) {
     console.error("Error during save operations:", saveError);
+
+    // Error notification
     notifications.toasts.addDanger(
       `Error during save operations: ${
         saveError instanceof Error ? saveError.message : "Unknown error"

@@ -16,6 +16,7 @@ import {
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
+import { saveData, uploadFile } from "./export_service";
 
 interface ToolbarProps {
   currentStateIndex: number; // Current index of the state
@@ -30,17 +31,17 @@ interface ClearNodesButtonProps {
   onClear: () => void; // Function to clear selected nodes
 }
 
-// Clear nodes button with notification badge
+// Button for clearing selected nodes with a notification badge
 const ClearNodesButton = forwardRef<unknown, ClearNodesButtonProps>(
   ({ selectedNodesCount, onClear }, ref) => {
     const buttonRef = useRef<any>(null);
 
-    // Animate the button when clearing nodes
+    // Animate button on clear
     const euiAnimate = useCallback(() => {
       buttonRef.current?.euiAnimate();
     }, []);
 
-    // Expose the animate function to the parent
+    // Expose animation function to parent
     useImperativeHandle(ref, () => ({
       euiAnimate,
     }));
@@ -62,7 +63,7 @@ const ClearNodesButton = forwardRef<unknown, ClearNodesButtonProps>(
 
 ClearNodesButton.displayName = "ClearNodesButton";
 
-// Toolbar component for state navigation and controls
+// Main toolbar component
 export const Toolbar: React.FC<ToolbarProps> = ({
   currentStateIndex,
   setCurrentStateIndex,
@@ -76,88 +77,55 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     selectedNodesLabel,
     setSelectedNodesLabel,
   } = useTreeContext(); // Access context values for selected state and nodes
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  const clearNodesRef = useRef<any>(null); // Reference to trigger animation on clear nodes
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
 
-  const currentIndex = states.findIndex((state) => state.state_id === selectedStateID);
-  console.log(currentIndex);
-  // Navigate to the previous state
+  const clearNodesRef = useRef<any>(null); // Reference to clear nodes button
+
+  const currentIndex = states.findIndex((state) => state.state_id === selectedStateID); // Get index of current state
+
+  // Navigate to previous state
   const goToPreviousState = () => {
     if (currentIndex > 0) {
       setSelectedStateID(states[currentIndex - 1].state_id);
     }
   };
 
-  // Navigate to the next state
+  // Navigate to next state
   const goToNextState = () => {
     if (currentIndex < states.length - 1) {
-      setSelectedStateID(states[currentIndex + 1].state_id); // Aggiorna il contesto
+      setSelectedStateID(states[currentIndex + 1].state_id);
     }
   };
 
-  // Clear the selected nodes and animate the button
+  // Clear selected nodes and trigger animation
   const clearSelectedNodes = () => {
     setSelectedNodesLabel([]);
     clearNodesRef.current?.euiAnimate();
   };
 
-  // Funzione per aprire il modale
+  // Open modal for file upload
   const openModal = () => setIsModalOpen(true);
 
-  // Funzione per chiudere il modale
+  // Close modal
   const closeModal = () => setIsModalOpen(false);
 
+  // Handle file upload and save process
   const handleFileUploading = async (file: File) => {
     if (file.type !== "text/xml") {
       notifications.toasts.addDanger("Only XML files are allowed.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const response = await uploadFile(http, notifications, file);
 
-    try {
-      // Invio del file XML al server Python
-      const response = await http.post("http://localhost:5002/receive_xml", {
-        body: formData, // FormData viene passato direttamente
-        headers: {
-          "Content-Type": undefined, // Lascia che il browser gestisca il boundary del multipart
-        },
-      });
-
-      if (!response || typeof response !== "object" || !response.data) {
-        throw new Error("Invalid response from server.");
-      }
-
-      const { file_name, data } = response;
-
-      if (!file_name || !data) {
-        throw new Error("Response is missing file_name or data.");
-      }
-
-      // Salva il file JSON generato dal server
-      await http.post(`/api/adt_viewer/save_tree/${file_name}`, {
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      // Notifica di successo
-      notifications.toasts.addSuccess(
-        `File saved successfully as ${file_name} in server/data/trees`
-      );
-    } catch (error) {
-      console.error("Error during file upload and save process:", error);
-      notifications.toasts.addDanger(
-        `Error during file upload and save process: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+    if (response) {
+      const { file_name, tree_data, policy_content } = response;
+      // Save the JSON file returned by the server
+      await saveData(http, notifications, file_name, tree_data, policy_content);
     }
   };
 
+  // Handle file selection
   const handleFileChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
@@ -166,7 +134,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
     closeModal();
   };
-
 
   return (
     <EuiHeaderSection grow>
@@ -199,7 +166,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </EuiHeaderSectionItemButton>
         </EuiToolTip>
 
-
         {/* Clear Nodes Button */}
         <ClearNodesButton
           ref={clearNodesRef}
@@ -217,7 +183,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </EuiToolTip>
       </EuiHeaderSectionItem>
 
-      {/* Modal */}
+      {/* Modal for file upload */}
       {isModalOpen && (
         <EuiOverlayMask>
           <EuiModal onClose={closeModal} initialFocus="[name=filePicker]">
@@ -238,6 +204,5 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </EuiOverlayMask>
       )}
     </EuiHeaderSection>
-
   );
 };
