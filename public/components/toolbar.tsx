@@ -13,6 +13,7 @@ import {
   EuiModalHeaderTitle,
   EuiOverlayMask,
   EuiSpacer,
+  EuiLoadingSpinner,
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
@@ -78,6 +79,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     setSelectedNodesLabel,
   } = useTreeContext(); // Access context values for selected state and nodes
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [isUploading, setIsUploading] = useState(false); // Uploading state
 
   const clearNodesRef = useRef<any>(null); // Reference to clear nodes button
 
@@ -116,6 +118,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       return;
     }
 
+    setIsUploading(true); // Mostra lo spinner
+
     const response = await uploadFile(http, notifications, file);
 
     if (response) {
@@ -123,6 +127,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       // Save the JSON file returned by the server
       await saveData(http, notifications, file_name, tree_data, policy_content);
     }
+    setIsUploading(false); // Nascondi lo spinner
   };
 
   // Handle file selection
@@ -188,7 +193,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         <EuiOverlayMask>
           <EuiModal onClose={closeModal} initialFocus="[name=filePicker]">
             <EuiModalHeader>
-              <EuiModalHeaderTitle>Upload XML File</EuiModalHeaderTitle>
+              <EuiModalHeaderTitle>
+                {/* Modal title with spinner */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>Upload XML File</span>
+                  {isUploading && <EuiLoadingSpinner size="xl" />}
+                </div>
+              </EuiModalHeaderTitle>
             </EuiModalHeader>
             <EuiModalBody>
               <EuiFilePicker
