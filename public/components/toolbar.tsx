@@ -7,7 +7,6 @@ import {
   EuiToolTip,
   EuiIcon,
   EuiFilePicker,
-  EuiButton,
   EuiModal,
   EuiModalBody,
   EuiModalHeader,
@@ -213,7 +212,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <EuiHeaderSectionItem>
         <EuiToolTip position="bottom" content="Upload XML file">
           <EuiHeaderSectionItemButton aria-label="Upload XML" onClick={openModal}>
-            <EuiIcon type="importAction" />
+            <EuiIcon type="exportAction" />
           </EuiHeaderSectionItemButton>
         </EuiToolTip>
       </EuiHeaderSectionItem>
@@ -229,14 +228,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               <EuiFilePicker
                 id="filePicker"
                 name="filePicker"
-                initialPromptText="Select an XML file to upload"
+                initialPromptText="Select or drag an XML file to upload"
                 onChange={handleFileChange}
                 accept=".xml"
               />
               <EuiSpacer size="m" />
-              <EuiButton fill onClick={closeModal}>
-                Close
-              </EuiButton>
             </EuiModalBody>
           </EuiModal>
         </EuiOverlayMask>
