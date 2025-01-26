@@ -15,6 +15,7 @@ import {
   EuiTableHeaderCell,
 } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
+import { FallbackMessage } from "./fallback_messages";
 
 interface StatesVisualizerProps {
   states: {
@@ -114,24 +115,20 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
   // Fallback message when treeData is unavailable
   if (!treeData) {
     return (
-      <div>
-        <EuiText color="danger">
-          <h3>Tree data not available</h3>
-          <p>Please load the tree data to visualize the states.</p>
-        </EuiText>
-      </div>
+      <FallbackMessage 
+        title="Tree data not available"
+        message="Please load the tree data to visualize the states."
+      />
     );
   }
 
   // Fallback message when states is unavailable
   if (!states || states.length === 0) {
     return (
-      <div>
-        <EuiText color="danger">
-          <h3>States data not available</h3>
-          <p>Please load the states data to visualize the tree states.</p>
-        </EuiText>
-      </div>
+      <FallbackMessage 
+        title="States data not available"
+        message="Please load the policy data to visualize the states."
+      />
     );
   }
   

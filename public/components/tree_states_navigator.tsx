@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { TreeVisualizer } from "./tree_visualizer";
 import { useTreeContext } from "./tree_context";
 import { EuiButtonIcon, EuiFlexGroup, EuiFlexItem, EuiModal, EuiModalBody, EuiModalHeader, EuiModalHeaderTitle, EuiOverlayMask, EuiText, EuiTitle, EuiToolTip } from "@elastic/eui";
+import { FallbackMessage } from "./fallback_messages";
 
 // Define the structure of a TreeState
 interface TreeState {
@@ -49,15 +50,13 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isModalVisible]);
 
-  // Fallback message when states is unavailable
+  // Fallback message when treeData is unavailable
     if (!treeData) {
       return (
-        <div>
-          <EuiText color="danger">
-            <h3>Tree data not available</h3>
-            <p>Please load the tree data to visualize the tree states.</p>
-          </EuiText>
-        </div>
+        <FallbackMessage 
+          title="Tree data not available"
+          message="Please load the tree data to visualize the states."
+        />
       );
     }
 

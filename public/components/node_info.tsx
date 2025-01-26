@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge, EuiText } from "@elastic/eui";
+import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge} from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
+import { FallbackMessage } from "./fallback_messages";
 
 interface NodeInfoProps {
   treeData: { nodes: { id: number; label: string; name: string; type: string; action?: string; role?: string }[] } | null; // Allow null for treeData
@@ -26,12 +27,10 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
   // Fallback message when treeData is unavailable
     if (!treeData) {
       return (
-        <div>
-          <EuiText color="danger">
-            <h3>Tree data not available</h3>
-            <p>Please load the tree data to visualize the states.</p>
-          </EuiText>
-        </div>
+        <FallbackMessage 
+          title="Tree data not available"
+          message="Please load the tree data to visualize the states."
+        />
       );
     }
 

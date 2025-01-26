@@ -7,10 +7,10 @@ import {
   EuiToolTip,
   EuiSwitch,
   EuiButton,
-  EuiText,
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
+import { FallbackMessage } from "./fallback_messages";
 
 interface TreeNode {
   id: number;
@@ -55,12 +55,10 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   // Fallback message when treeData is unavailable
     if (!treeData) {
       return (
-        <div>
-          <EuiText color="danger">
-            <h3>Tree data not available</h3>
-            <p>Please load the tree data to visualize the states.</p>
-          </EuiText>
-        </div>
+        <FallbackMessage 
+          title="Tree data not available"
+          message="Please load the tree data to visualize the states."
+        />
       );
     }
 
