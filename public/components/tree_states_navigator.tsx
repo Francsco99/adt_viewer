@@ -168,17 +168,33 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
                   {/* Fixed Node */}
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <svg width="50" height="30" style={{ marginRight: "10px" }}>
-                      <rect
-                        width="40"
-                        height="25"
-                        x="5"
-                        y="2.5"
+                      <ellipse
+                        cx="25"
+                        cy="15"
+                        rx="20"
+                        ry="12.5"
                         fill={fixedNodeColor}
                         stroke={fixedNodeBorderColor}
                         strokeWidth="2"
                       />
                     </svg>
                     <span style={{ verticalAlign: "middle" }}>Fixed Node</span>
+                  </div>
+
+                  {/* Blocked Node */}
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <svg width="50" height="30" style={{ marginRight: "10px" }}>
+                    <ellipse
+                        cx="25"
+                        cy="15"
+                        rx="20"
+                        ry="12.5"
+                        fill= "lightgray"
+                        stroke= "gray"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    <span style={{ verticalAlign: "middle" }}>Blocked Node</span>
                   </div>
                 </div>
               </EuiText>
