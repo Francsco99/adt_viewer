@@ -7,6 +7,7 @@ import {
   EuiToolTip,
   EuiSwitch,
   EuiButton,
+  EuiText,
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
@@ -51,9 +52,17 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     setFlaggedActions(hiddenLabels);
   }, [treeData]);
 
-  if (!treeData) {
-    return <p>Loading tree data...</p>;
-  }
+  // Fallback message when treeData is unavailable
+    if (!treeData) {
+      return (
+        <div>
+          <EuiText color="danger">
+            <h3>Tree data not available</h3>
+            <p>Please load the tree data to visualize the states.</p>
+          </EuiText>
+        </div>
+      );
+    }
 
   const actionNodes = Array.from(
     new Map(

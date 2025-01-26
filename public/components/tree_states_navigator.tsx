@@ -16,7 +16,7 @@ interface TreeStateNavigatorProps {
   treeData: {
     nodes: { id: number; label: string; name:string; role: string; type: string; hidden?: boolean; }[]; // Node data for the tree
     edges: { id_source: number; id_target: number }[]; // Edges data for the tree
-  };
+  } | null;
   states: TreeState[]; // Array of tree states
 }
 
@@ -48,6 +48,18 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
     // Cleanup event listener
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isModalVisible]);
+
+  // Fallback message when states is unavailable
+    if (!treeData) {
+      return (
+        <div>
+          <EuiText color="danger">
+            <h3>Tree data not available</h3>
+            <p>Please load the tree data to visualize the tree states.</p>
+          </EuiText>
+        </div>
+      );
+    }
 
   return (
     <div>

@@ -10,6 +10,7 @@ import {
 } from "@elastic/charts";
 import "@elastic/charts/dist/theme_light.css";
 import { useTreeContext } from "./tree_context";
+import { EuiText } from "@elastic/eui";
 
 interface StateData {
   state_id: number;
@@ -124,7 +125,29 @@ export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
     }
   }, [states, treeData, selectedStateID]);
 
-  if (!data || !treeData) return <p>Loading chart...</p>;
+  // Fallback message when treeData is unavailable
+    if (!data || !treeData) {
+      return (
+        <div>
+          <EuiText color="danger">
+            <h3>Tree data not available</h3>
+            <p>Please load the tree data to visualize the states.</p>
+          </EuiText>
+        </div>
+      );
+    }
+
+    // Fallback message when states is unavailable
+      if (!states || states.length === 0) {
+        return (
+          <div>
+            <EuiText color="danger">
+              <h3>States data not available</h3>
+              <p>Please load the states data to visualize the tree states.</p>
+            </EuiText>
+          </div>
+        );
+      }
 
   return (
     <div style={{ height: "400px" }}>

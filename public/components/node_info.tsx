@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge } from "@elastic/eui";
+import { EuiBasicTable, EuiSwitch, EuiSpacer, EuiBadge, EuiText } from "@elastic/eui";
 import { useTreeContext } from "./tree_context";
 
 interface NodeInfoProps {
@@ -23,10 +23,17 @@ export const NodeInfo: React.FC<NodeInfoProps> = ({ treeData }) => {
   const [sortField, setSortField] = useState<keyof Node>("id"); // Sorting field
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // Sorting direction
 
-  // Show loading message if treeData is not available
-  if (!treeData) {
-    return <p>Loading tree data...</p>;
-  }
+  // Fallback message when treeData is unavailable
+    if (!treeData) {
+      return (
+        <div>
+          <EuiText color="danger">
+            <h3>Tree data not available</h3>
+            <p>Please load the tree data to visualize the states.</p>
+          </EuiText>
+        </div>
+      );
+    }
 
   // Prepare table rows
   const rows: Node[] = showAllNodes
