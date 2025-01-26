@@ -123,6 +123,18 @@ export const StatesVisualizer: React.FC<StatesVisualizerProps> = ({
     );
   }
 
+  // Fallback message when states is unavailable
+  if (!states) {
+    return (
+      <div>
+        <EuiText color="danger">
+          <h3>Policy data not available</h3>
+          <p>Please load the policy data to visualize the states.</p>
+        </EuiText>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
