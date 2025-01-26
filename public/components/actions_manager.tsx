@@ -7,6 +7,7 @@ import {
   EuiToolTip,
   EuiSwitch,
   EuiButton,
+  EuiLoadingSpinner,
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
@@ -45,6 +46,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
 
   const [flaggedActions, setFlaggedActions] = useState<string[]>([]);
   const [showAllActions, setShowAllActions] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // Uploading state
+  
 
   useEffect(() => {
     const hiddenLabels = treeData?.nodes
@@ -99,6 +102,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         edges: treeData.edges,
       },
     };
+
+    setIsUploading(true); // Mostra lo spinner
   
     const response = await exportData(http, notifications, updatedTreeData);
   
@@ -106,6 +111,8 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
       const { file_name, tree_data, policy_content } = response;
       await saveData(http, notifications, file_name, tree_data, policy_content);
     }
+
+    setIsUploading(false); // Nascondi lo spinner
   };
 
   const columns = [
@@ -255,7 +262,10 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
         onChange={handleTableChange}
       />
       <EuiSpacer size="m" />
-      <EuiButton onClick={handleExport}>Export configuration</EuiButton>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <EuiButton onClick={handleExport}>Export configuration</EuiButton>
+        {isUploading && <EuiLoadingSpinner size="l" />}
+      </div>
     </div>
   );
 };
