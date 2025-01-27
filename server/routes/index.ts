@@ -1,42 +1,12 @@
-import path from 'path';
-import fs from 'fs/promises'; // Utilizzo della versione async di fs
 import { schema } from '@osd/config-schema';
 import { IRouter } from '../../../../src/core/server';
 
-/**
- * Funzione helper per leggere un file JSON.
- * @param filePath Il percorso del file da leggere.
- * @returns Il contenuto del file JSON come oggetto.
- */
-async function readJsonFile(filePath: string): Promise<any> {
-  try {
-    const fileContent = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(fileContent);
-  } catch (error) {
-    console.error(`Failed to read file at ${filePath}:`, error instanceof Error ? error.message : error);
-    throw new Error('Failed to read the file');
-  }
-}
-
-/**
- * Funzione helper per scrivere dati in un file JSON.
- * @param filePath Il percorso del file in cui scrivere.
- * @param data I dati da scrivere nel file.
- */
-async function writeJsonFile(filePath: string, data: object): Promise<void> {
-  try {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-  } catch (error) {
-    console.error(`Failed to write file at ${filePath}:`, error instanceof Error ? error.message : error);
-    throw new Error('Failed to write the file');
-  }
-}
+const fetch = require('node-fetch');
 
 export function defineRoutes(router: IRouter) {
-  
   /**
    * Route: /api/adt_viewer/trees_list
-   * Descrizione: Restituisce un elenco di file di alberi disponibili.
+   * Description: Returns a list of available tree files from Flask.
    */
   router.get(
     {
@@ -44,65 +14,78 @@ export function defineRoutes(router: IRouter) {
       validate: false,
     },
     async (context, request, response) => {
-      const directoryPath = path.resolve(__dirname, '../data/trees');
       try {
-        const files = await fs.readdir(directoryPath);
-        const jsonFiles = files.filter((file) => file.endsWith('.json'));
-        return response.ok({ body: { trees: jsonFiles } });
+        const flaskResponse = await fetch('http://172.18.0.2:5003/api/trees', {
+          method: 'GET',
+        });
+
+        if (!flaskResponse.ok) {
+          return response.notFound({
+            body: 'Failed to fetch tree list from Flask.',
+          });
+        }
+
+        const trees = await flaskResponse.json();
+        return response.ok({ body: { trees } });
       } catch (error) {
+        console.error('Failed to fetch trees list from Flask:', error);
         return response.internalError({
-          body: 'An error occurred while retrieving the trees list.',
+          body: 'An error occurred while fetching the trees list.',
         });
       }
     }
   );
 
   /**
-   * Route: /api/adt_viewer/tree/{treeName}
-   * Descrizione: Carica un albero specifico dal file system.
+   * Route: /api/adt_viewer/tree/{treeId}
+   * Description: Fetches a specific tree by its ID from Flask.
    */
   router.get(
     {
-      path: '/api/adt_viewer/tree/{treeName}',
+      path: '/api/adt_viewer/tree/{treeId}',
       validate: {
         params: schema.object({
-          treeName: schema.string({ minLength: 1 }),
+          treeId: schema.number(), // Tree ID as a number
         }),
       },
     },
     async (context, request, response) => {
-      const { treeName } = request.params;
-      const safeFileName = path.basename(treeName);
-      const filePath = path.resolve(__dirname, '../data/trees', safeFileName);
+      const { treeId } = request.params;
 
       try {
-        const treeData = await readJsonFile(filePath);
-        return response.ok({ body: treeData });
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('ENOENT')) {
+        const flaskResponse = await fetch(`http://172.18.0.2:5003/api/trees/${treeId}`, {
+          method: 'GET',
+        });
+
+        if (!flaskResponse.ok) {
           return response.notFound({
-            body: `The requested tree "${treeName}" does not exist.`,
+            body: `Tree with ID "${treeId}" not found on Flask.`,
           });
         }
+
+        const treeData = await flaskResponse.json();
+        return response.ok({ body: treeData.content });
+      } catch (error) {
+        console.error(`Failed to fetch tree with ID "${treeId}" from Flask:`, error);
         return response.internalError({
-          body: 'An error occurred while loading the tree.',
+          body: `An error occurred while loading the tree with ID "${treeId}".`,
         });
       }
     }
   );
 
   /**
-  * Route: /api/adt_viewer/save_tree/{filename}
-  * Descrizione: Salva un file JSON specifico nella directory server/data/trees.
-  */
+   * Route: /api/adt_viewer/save_tree/{fileName}
+   * Description: Saves a tree as a JSON object by sending a POST request to Flask.
+   */
   router.post(
     {
-      path: '/api/adt_viewer/save_tree/{filename}',
+      path: '/api/adt_viewer/save_tree/{fileName}',
       validate: {
         params: schema.object({
-          filename: schema.string({ minLength: 1 }),
+          fileName: schema.string({ minLength: 1 }), // Name of the file
         }),
-        body: schema.object({}, { unknowns: 'allow' }),
+        body: schema.object({}, { unknowns: 'allow' }), // Generic JSON content
       },
       options: {
         body: {
@@ -112,20 +95,33 @@ export function defineRoutes(router: IRouter) {
       },
     },
     async (context, request, response) => {
-      const { filename } = request.params;
-      const safeFileName = path.basename(filename); // Protezione contro il path traversal
-      const filePath = path.resolve(__dirname, '../data/trees', safeFileName); // Salva nella directory server/data/actions
+      const { fileName } = request.params;
+      const treeData = request.body; // JSON content of the tree
 
       try {
-        // Salva i dati JSON nel file specificato
-        await writeJsonFile(filePath, request.body);
+        // Sends a POST request to the Flask server
+        const flaskResponse = await fetch('http://172.18.0.2:5003/api/trees', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: fileName, content: treeData }),
+        });
 
+        if (!flaskResponse.ok) {
+          const errorBody = await flaskResponse.text();
+          return response.customError({
+            statusCode: flaskResponse.status,
+            body: `Flask Error: ${errorBody}`,
+          });
+        }
+
+        const result = await flaskResponse.json();
         return response.ok({
-          body: { message: `File saved as ${safeFileName}` },
+          body: { message: `Tree ${fileName} saved successfully`, id: result.id },
         });
       } catch (error) {
+        console.error('Error saving tree to Flask:', error);
         return response.internalError({
-          body: 'An error occurred while saving the file.',
+          body: 'An error occurred while saving the tree.',
         });
       }
     }
@@ -133,7 +129,7 @@ export function defineRoutes(router: IRouter) {
 
   /**
    * Route: /api/adt_viewer/policies_list
-   * Descrizione: Restituisce un elenco di file di policy disponibili.
+   * Description: Returns a list of available policies from Flask.
    */
   router.get(
     {
@@ -141,65 +137,78 @@ export function defineRoutes(router: IRouter) {
       validate: false,
     },
     async (context, request, response) => {
-      const directoryPath = path.resolve(__dirname, '../data/policies');
       try {
-        const files = await fs.readdir(directoryPath);
-        const jsonFiles = files.filter((file) => file.endsWith('.json'));
-        return response.ok({ body: { policies: jsonFiles } });
+        const flaskResponse = await fetch('http://172.18.0.2:5003/api/policies', {
+          method: 'GET',
+        });
+
+        if (!flaskResponse.ok) {
+          return response.notFound({
+            body: 'Failed to fetch policies list from Flask.',
+          });
+        }
+
+        const policies = await flaskResponse.json();
+        return response.ok({ body: { policies } });
       } catch (error) {
+        console.error('Failed to fetch policies list from Flask:', error);
         return response.internalError({
-          body: 'An error occurred while retrieving the policies list.',
+          body: 'An error occurred while fetching the policies list.',
         });
       }
     }
   );
 
   /**
-   * Route: /api/adt_viewer/load_policy/{policyName}
-   * Descrizione: Carica una specifica policy dal file system.
+   * Route: /api/adt_viewer/load_policy/{policyId}
+   * Description: Fetches a specific policy by its ID from Flask.
    */
   router.get(
     {
-      path: '/api/adt_viewer/load_policy/{policyName}',
+      path: '/api/adt_viewer/load_policy/{policyId}',
       validate: {
         params: schema.object({
-          policyName: schema.string({ minLength: 1 }),
+          policyId: schema.number(), // Policy ID as a number
         }),
       },
     },
     async (context, request, response) => {
-      const { policyName } = request.params;
-      const safeFileName = path.basename(policyName);
-      const filePath = path.resolve(__dirname, '../data/policies', safeFileName);
+      const { policyId } = request.params;
 
       try {
-        const policyData = await readJsonFile(filePath);
-        return response.ok({ body: policyData });
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('ENOENT')) {
+        const flaskResponse = await fetch(`http://172.18.0.2:5003/api/policies/${policyId}`, {
+          method: 'GET',
+        });
+
+        if (!flaskResponse.ok) {
           return response.notFound({
-            body: `The requested policy "${policyName}" does not exist.`,
+            body: `Policy with ID "${policyId}" not found on Flask.`,
           });
         }
+
+        const policyData = await flaskResponse.json();
+        return response.ok({ body: policyData.content });
+      } catch (error) {
+        console.error(`Failed to fetch policy with ID "${policyId}" from Flask:`, error);
         return response.internalError({
-          body: 'An error occurred while loading the policy.',
+          body: `An error occurred while loading the policy with ID "${policyId}".`,
         });
       }
     }
   );
 
   /**
-   * Route: /api/adt_viewer/save_policy/{filename}
-   * Descrizione: Salva una policy nel file system.
+   * Route: /api/adt_viewer/save_policy/{fileName}
+   * Description: Saves a policy as a JSON object by sending a POST request to Flask.
    */
   router.post(
     {
-      path: '/api/adt_viewer/save_policy/{filename}',
+      path: '/api/adt_viewer/save_policy/{fileName}',
       validate: {
         params: schema.object({
-          filename: schema.string({ minLength: 1 }),
+          fileName: schema.string({ minLength: 1 }), // Name of the file
         }),
-        body: schema.object({}, { unknowns: 'allow' }),
+        body: schema.object({}, { unknowns: 'allow' }), // Generic JSON content
       },
       options: {
         body: {
@@ -209,43 +218,35 @@ export function defineRoutes(router: IRouter) {
       },
     },
     async (context, request, response) => {
-      const { filename } = request.params;
-      const safeFileName = path.basename(filename);
-      const filePath = path.resolve(__dirname, '../data/policies', safeFileName);
+      const { fileName } = request.params;
+      const policyData = request.body; // JSON content of the policy
 
       try {
-        await writeJsonFile(filePath, request.body);
+        // Sends a POST request to the Flask server
+        const flaskResponse = await fetch('http://172.18.0.2:5003/api/policies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: fileName, content: policyData }),
+        });
+
+        if (!flaskResponse.ok) {
+          const errorBody = await flaskResponse.text();
+          return response.customError({
+            statusCode: flaskResponse.status,
+            body: `Flask Error: ${errorBody}`,
+          });
+        }
+
+        const result = await flaskResponse.json();
         return response.ok({
-          body: { message: `Policy saved as ${filename}` },
+          body: { message: `Policy ${fileName} saved successfully`, id: result.id },
         });
       } catch (error) {
+        console.error('Error saving policy to Flask:', error);
         return response.internalError({
           body: 'An error occurred while saving the policy.',
         });
       }
     }
-  ); 
-
-  /**
-   * Route: /api/adt_viewer/actions
-   * Descrizione: Restituisce i dati delle azioni.
-   */
-  router.get(
-    {
-      path: '/api/adt_viewer/actions',
-      validate: false,
-    },
-    async (context, request, response) => {
-      const filePath = path.resolve(__dirname, '../data/actions/actions.json');
-      try {
-        const actionsData = await readJsonFile(filePath);
-        return response.ok({ body: actionsData });
-      } catch (error) {
-        return response.internalError({
-          body: 'An error occurred while retrieving the actions data.',
-        });
-      }
-    }
   );
-
 }
