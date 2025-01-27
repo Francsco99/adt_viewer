@@ -18,7 +18,8 @@ import "@elastic/charts/dist/theme_only_light.css";
 import { useTreeContext } from "./tree_context";
 
 interface PolicyData {
-  policy: string; // Name of the policy
+  policyId: number; // Policy ID
+  policy: string; // Policy name
   cost: number; // Total monetary cost
   time: number; // Total time
   objective: number; // Objective function value
@@ -27,7 +28,7 @@ interface PolicyData {
 interface PolicyComparisonChartProps {
   http: any; // HTTP service for API calls
   notifications: any; // Notifications service for user feedback
-  policiesList: string[]; // List of policies to compare
+  policiesList: { id: number; name: string }[]; // List of policies to compare
   treeData: {
     nodes: {
       id: number;
@@ -49,14 +50,16 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
 }) => {
   const { getColor } = useTreeContext(); // Get color palette from context
   const [policyMetrics, setPolicyMetrics] = useState<PolicyData[]>([]); // Metrics for each policy
-  const [selectedPolicies, setSelectedPolicies] =
-    useState<string[]>(policiesList); // Selected policies for display
+  const [selectedPolicyIds, setSelectedPolicyIds] = useState<number[]>(
+    policiesList.map((policy) => policy.id)
+  ); // Selected policy IDs for display
   const [isPopoverOpen, setIsPopoverOpen] = useState(false); // Toggle for the policy selection popover
 
   // Options for the policy selector
-  const [options, setOptions] = useState<{ label: string; checked?: "on" }[]>(
+  const [options, setOptions] = useState<{ label: string; policyId: number; checked?: "on" }[]>(
     policiesList.map((policy) => ({
-      label: policy,
+      label: policy.name,
+      policyId: policy.id,
       checked: "on",
     }))
   );
@@ -74,17 +77,15 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
       try {
         // Fetch metrics for each policy
         const metrics = await Promise.all(
-          policiesList.map(async (policyName) => {
-            const response = await http.get(
-              `/api/adt_viewer/load_policy/${policyName}`
-            );
-            const policy = response;
+          policiesList.map(async (policy) => {
+            const response = await http.get(`/api/adt_viewer/load_policy/${policy.id}`);
+            const policyData = response;
 
             let totalCost = 0;
             let totalTime = 0;
 
             // Calculate total cost and time using `optimal_action` and `treeData`
-            policy.states.forEach((state: any) => {
+            policyData.states.forEach((state: any) => {
               const optimalActionLabel = state.optimal_action;
               if (optimalActionLabel) {
                 const actionNode = treeData.nodes.find(
@@ -98,23 +99,14 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                   totalCost += actionNode.cost;
                   totalTime += actionNode.time;
                 }
-                console.log(
-                  "label: ",
-                  optimalActionLabel,
-                  "\n",
-                  "cost: ",
-                  actionNode?.cost,
-                  "\n",
-                  "time: ",
-                  actionNode?.time
-                );
               }
             });
 
             // Calculate the objective function value
             const objective = wt * totalTime + wc * totalCost;
             return {
-              policy: policyName,
+              policyId: policy.id,
+              policy: policy.name,
               cost: totalCost,
               time: totalTime,
               objective,
@@ -127,34 +119,33 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
         // Update options for the policy selector
         setOptions(
           policiesList.map((policy) => ({
-            label: policy,
-            checked: selectedPolicies.includes(policy) ? "on" : undefined,
+            label: policy.name,
+            policyId: policy.id,
+            checked: selectedPolicyIds.includes(policy.id) ? "on" : undefined,
           }))
         );
       } catch (error) {
-        notifications.toasts.addDanger(
-          "Failed to load policy data for comparison."
-        );
+        notifications.toasts.addDanger("Failed to load policy data for comparison.");
       }
     };
 
     fetchPolicyData();
-  }, [http, policiesList, treeData, notifications, selectedPolicies]);
+  }, [http, policiesList, treeData, notifications, selectedPolicyIds]);
 
   // Handle selection change in the policy selector
   const handleSelectionChange = (
-    updatedOptions: { label: string; checked?: "on" }[]
+    updatedOptions: { label: string; policyId: number; checked?: "on" }[]
   ) => {
     setOptions(updatedOptions);
-    const selected = updatedOptions
+    const selectedIds = updatedOptions
       .filter((option) => option.checked === "on")
-      .map((o) => o.label);
-    setSelectedPolicies(selected);
+      .map((o) => o.policyId);
+    setSelectedPolicyIds(selectedIds);
   };
 
   // Filter metrics to include only selected policies
   const filteredMetrics = policyMetrics.filter((metric) =>
-    selectedPolicies.includes(metric.policy)
+    selectedPolicyIds.includes(metric.policyId)
   );
 
   return (
@@ -165,22 +156,11 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
             <Settings
               showLegend={false} // Disable legend
               tooltip={{
-                // Custom tooltip for displaying policy details
                 customTooltip: ({ values }) => (
-                  <div
-                    style={{
-                      padding: "10px",
-                      backgroundColor: "#fff",
-                      border: "1px solid #ccc",
-                    }}
-                  >
+                  <div style={{ padding: "10px", backgroundColor: "#fff", border: "1px solid #ccc" }}>
                     {values.map((val, idx) => {
                       const datum = val.datum as Partial<PolicyData>;
-                      if (
-                        !datum ||
-                        !datum.policy ||
-                        datum.objective === undefined
-                      ) {
+                      if (!datum || !datum.policy || datum.objective === undefined) {
                         return null;
                       }
 
@@ -192,8 +172,7 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                           <br />
                           <strong>Monetary Cost:</strong> {datum.cost ?? "N/A"}
                           <br />
-                          <strong>Objective:</strong>{" "}
-                          {datum.objective.toFixed(2)}
+                          <strong>Objective:</strong> {datum.objective.toFixed(2)}
                         </div>
                       );
                     })}
@@ -202,10 +181,9 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
               }}
             />
 
-            {/* Render a LineSeries for each policy */}
             {filteredMetrics.map((metric, index) => (
               <LineSeries
-                key={metric.policy}
+                key={metric.policyId}
                 id={metric.policy}
                 name={metric.policy}
                 xScaleType={ScaleType.Linear}
@@ -215,41 +193,29 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
                 lineSeriesStyle={{
                   line: {
                     strokeWidth: 2,
-                    stroke: getColor(index), // Assign color from context
+                    stroke: getColor(index),
                   },
                 }}
                 pointStyleAccessor={(datum) => {
                   if (datum.x === 0) {
-                    return {
-                      radius: 0,
-                    };
+                    return { radius: 0 };
                   }
                   return {
                     visible: true,
                     radius: 3,
                     strokeWidth: 6,
-                    stroke: getColor(index), // Colore bordo
+                    stroke: getColor(index),
                   };
                 }}
                 data={[
-                  { x: 0, y: 0, policy: metric.policy }, // Start point
-                  { x: metric.time, y: metric.cost, ...metric }, // End point
+                  { x: 0, y: 0, policy: metric.policy },
+                  { x: metric.time, y: metric.cost, ...metric },
                 ]}
               />
             ))}
 
-            <Axis
-              id="bottom-axis"
-              position={Position.Bottom}
-              title="Time"
-              showGridLines
-            />
-            <Axis
-              id="left-axis"
-              position={Position.Left}
-              title="Monetary Cost"
-              showGridLines
-            />
+            <Axis id="bottom-axis" position={Position.Bottom} title="Time" showGridLines />
+            <Axis id="left-axis" position={Position.Left} title="Monetary Cost" showGridLines />
           </Chart>
         ) : (
           <p>No policies selected for display.</p>
