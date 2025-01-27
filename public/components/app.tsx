@@ -47,72 +47,93 @@ export const AdtViewerApp = ({
   const [treeData, setTreeData] = useState(null);
   const [states, setStates] = useState([]);
   const [currentStateIndex, setCurrentStateIndex] = useState(0);
-  const [policiesList, setPoliciesList] = useState<string[]>([]);
-  const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
-  const [treesList, setTreesList] = useState<string[]>([]);
-  const [selectedTree, setSelectedTree] = useState<string | null>(null);
+  const [policiesList, setPoliciesList] = useState<{ id: number; name: string }[]>([]);
+  const [selectedPolicy, setSelectedPolicy] = useState<{ id: number; name: string } | null>(null);
+  const [treesList, setTreesList] = useState<{ id: number; name: string }[]>([]);
+  const [selectedTree, setSelectedTree] = useState<{ id: number; name: string } | null>(null);
   const [isPolicyPopoverOpen, setIsPolicyPopoverOpen] = useState(false);
   const [isTreePopoverOpen, setIsTreePopoverOpen] = useState(false);
+  const [listsLoaded, setListsLoaded] = useState(false);
 
   useEffect(() => {
-    // Carica la lista delle policy
-    http
-      .get("/api/adt_viewer/policies_list")
-      .then((res) => {
-        setPoliciesList(res.policies);
-        if (res.policies.length>0) {
-          setSelectedPolicy(res.policies[0]);
-          loadPolicy(res.policies[0]);
+    let isMounted = true;
+  
+    const fetchLists = async () => {
+      try {
+        // Carica le policy
+        const policiesResponse = await http.get("/api/adt_viewer/policies_list");
+        const mappedPolicies = policiesResponse.policies.map((policy: { id: number; name: string }) => ({
+          id: policy.id,
+          name: policy.name,
+        }));
+  
+        // Carica gli alberi
+        const treesResponse = await http.get("/api/adt_viewer/trees_list");
+        const mappedTrees = treesResponse.trees.map((tree: { id: number; name: string }) => ({
+          id: tree.id,
+          name: tree.name,
+        }));
+  
+        if (isMounted) {
+          setPoliciesList(mappedPolicies);
+          setTreesList(mappedTrees);
+          setListsLoaded(true); // Segna il caricamento completato
         }
-      })
-      .catch((error) =>
-        notifications.toasts.addDanger("Failed to load policies list")
-      );
-
-    // Carica la lista degli alberi
-    http
-      .get("/api/adt_viewer/trees_list")
-      .then((res) => {
-        setTreesList(res.trees);
-        if (res.trees.length > 0) {
-          setSelectedTree(res.trees[0]); // Seleziona il primo albero di default
-          loadTree(res.trees[0]);
-        }
-      })
-      .catch((error) =>
-        notifications.toasts.addDanger("Failed to load trees list")
-      );
+      } catch (error) {
+        notifications.toasts.addDanger("Failed to load lists");
+      }
+    };
+  
+    fetchLists();
+  
+    return () => {
+      isMounted = false; // Evita aggiornamenti dello stato se il componente viene smontato
+    };
   }, [http, notifications]);
-
-  const loadPolicy = (policyName: string) => {
-    http
-      .get(`/api/adt_viewer/load_policy/${policyName}`)
-      .then((res) => {
-        setStates(res.states);
-        setSelectedPolicy(policyName);
-        notifications.toasts.addSuccess(`Loaded policy: ${policyName}`);
-      })
-      .catch((error) =>
-        notifications.toasts.addDanger(`Failed to load policy: ${policyName}`)
-      );
+  
+  // Effettua il set di defaultPolicy e defaultTree solo dopo che le liste sono state caricate
+  useEffect(() => {
+    if (listsLoaded) {
+      if (!selectedPolicy && policiesList.length > 0) {
+        const defaultPolicy = policiesList[0];
+        setSelectedPolicy(defaultPolicy);
+        loadPolicy(defaultPolicy.id);
+      }
+  
+      if (!selectedTree && treesList.length > 0) {
+        const defaultTree = treesList[0];
+        setSelectedTree(defaultTree);
+        loadTree(defaultTree.id);
+      }
+    }
+  }, [listsLoaded, policiesList, treesList, selectedPolicy, selectedTree]);
+  
+  const loadPolicy = async (policyId: number) => {
+    try {
+      const res = await http.get(`/api/adt_viewer/load_policy/${policyId}`);
+      setStates(res.states);
+      setSelectedPolicy(policiesList.find((policy) => policy.id === policyId) || null);
+      notifications.toasts.addSuccess(`Loaded policy with ID: ${policyId}`);
+    } catch (error) {
+      notifications.toasts.addDanger(`Failed to load policy with ID: ${policyId}`);
+    }
   };
-
-  const loadTree = (treeName: string) => {
-    http
-      .get(`/api/adt_viewer/tree/${treeName}`)
-      .then((res) => {
-        setTreeData(res.tree);
-        setSelectedTree(treeName);
-        notifications.toasts.addSuccess(`Loaded tree: ${treeName}`);
-      })
-      .catch((error) =>
-        notifications.toasts.addDanger(`Failed to load tree: ${treeName}`)
-      );
+  
+  const loadTree = async (treeId: number) => {
+    try {
+      const res = await http.get(`/api/adt_viewer/tree/${treeId}`);
+      setTreeData(res.tree);
+      setSelectedTree(treesList.find((tree) => tree.id === treeId) || null);
+      notifications.toasts.addSuccess(`Loaded tree with ID: ${treeId}`);
+    } catch (error) {
+      notifications.toasts.addDanger(`Failed to load tree with ID: ${treeId}`);
+    }
   };
+  
 
   return (
     <Router basename={basename}>
-      <TreeContextProvider selectedPolicy={selectedPolicy} selectedTree={selectedTree}>
+      <TreeContextProvider selectedPolicy={selectedPolicy?.name ?? null} selectedTree={selectedTree?.name ?? null}>
         {/* Header */}
         <EuiHeader>
           <EuiHeaderSection grow={true}>
@@ -155,11 +176,11 @@ export const AdtViewerApp = ({
                       {
                         id: 0,
                         items: policiesList.map((policy) => ({
-                          name: policy,
+                          name: policy.name,
                           onClick: () => {
                             setIsPolicyPopoverOpen(false);
                             setSelectedPolicy(policy);
-                            loadPolicy(policy);
+                            loadPolicy(policy.id);
                           },
                         })),
                       },
@@ -170,7 +191,7 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={false}>
                 <EuiText>
                   <span style={{ fontWeight: "bold" }}>
-                    {selectedPolicy ? selectedPolicy : "No policy selected"}
+                    {selectedPolicy?.name ?? "No policy selected"}
                   </span>
                 </EuiText>
               </EuiFlexItem>
@@ -209,11 +230,11 @@ export const AdtViewerApp = ({
                       {
                         id: 0,
                         items: treesList.map((tree) => ({
-                          name: tree,
+                          name: tree.name,
                           onClick: () => {
                             setIsTreePopoverOpen(false);
                             setSelectedTree(tree);
-                            loadTree(tree);
+                            loadTree(tree.id);
                           },
                         })),
                       },
@@ -224,7 +245,7 @@ export const AdtViewerApp = ({
               <EuiFlexItem grow={false}>
                 <EuiText>
                   <span style={{ fontWeight: "bold" }}>
-                    {selectedTree ? selectedTree : "No tree selected"}
+                    {selectedTree?.name ?? "No tree selected"}
                   </span>
                 </EuiText>
               </EuiFlexItem>
@@ -333,12 +354,12 @@ export const AdtViewerApp = ({
                         name: "Policy Comparison",
                         content: (
                           <div>
-                            <PolicyComparisonChart
+                            {/*<PolicyComparisonChart
                               http={http}
                               notifications={notifications}
                               policiesList={policiesList}
                               treeData={treeData}
-                            />
+                            />*/}
                           </div>
                         ),
                       },
