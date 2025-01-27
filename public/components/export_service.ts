@@ -95,19 +95,24 @@ export async function uploadFile(
 }
 
 /**
- * Saves the data returned from the server (tree_data and policy_content).
+ * Saves the data returned from the server (tree_data and policy_content) and updates the lists.
  * @param http HTTP object from CoreStart.
  * @param notifications Notifications object from CoreStart.
  * @param fileName Name of the saved file.
  * @param treeData Tree data returned by the server.
  * @param policyContent Policy content returned by the server.
+ * @param refreshLists Optional functions to refresh policies and trees lists.
  */
 export async function saveData(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
   fileName: string,
   treeData: object,
-  policyContent: object
+  policyContent: object,
+  refreshLists?: {
+    refreshPolicies: () => Promise<void>;
+    refreshTrees: () => Promise<void>;
+  }
 ): Promise<void> {
   try {
     const [savePolicyResponse, saveTreeResponse] = await Promise.all([
@@ -126,6 +131,14 @@ export async function saveData(
 
     console.log("Policy content saved:", savePolicyResponse);
     console.log("Tree data saved:", saveTreeResponse);
+
+    // Update the lists if refresh functions are provided
+    if (refreshLists) {
+      await Promise.all([
+        refreshLists.refreshPolicies(),
+        refreshLists.refreshTrees(),
+      ]);
+    }
 
     // Success notification
     notifications.toasts.addSuccess(

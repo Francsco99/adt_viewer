@@ -34,12 +34,16 @@ interface ActionsManagerProps {
   treeData: TreeData | null;
   http: CoreStart["http"];
   notifications: CoreStart["notifications"];
+  refreshPoliciesList: () => void;
+  refreshTreesList: () => void;
 }
 
 export const ActionsManager: React.FC<ActionsManagerProps> = ({
   treeData,
   http,
   notifications,
+  refreshPoliciesList,
+  refreshTreesList,
 }) => {
   const { selectedNodesLabel, setSelectedNodesLabel, selectedTree } =
     useTreeContext();
@@ -109,7 +113,9 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   
     if (response) {
       const { file_name, tree_data, policy_content } = response;
-      await saveData(http, notifications, file_name, tree_data, policy_content);
+      await saveData(http, notifications, file_name, tree_data, policy_content,{
+        refreshPolicies: async () => refreshPoliciesList(),
+        refreshTrees: async() => refreshTreesList(),});
     }
 
     setIsUploading(false); // Nascondi lo spinner

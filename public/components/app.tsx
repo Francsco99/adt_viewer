@@ -130,6 +130,32 @@ export const AdtViewerApp = ({
     }
   };
   
+  const refreshPoliciesList = async () => {
+    try {
+      const policiesResponse = await http.get("/api/adt_viewer/policies_list");
+      const mappedPolicies = policiesResponse.policies.map((policy: { id: number; name: string }) => ({
+        id: policy.id,
+        name: policy.name,
+      }));
+      setPoliciesList(mappedPolicies);
+    } catch (error) {
+      notifications.toasts.addDanger("Failed to update policies list.");
+    }
+  };
+  
+  const refreshTreesList = async () => {
+    try {
+      const treesResponse = await http.get("/api/adt_viewer/trees_list");
+      const mappedTrees = treesResponse.trees.map((tree: { id: number; name: string }) => ({
+        id: tree.id,
+        name: tree.name,
+      }));
+      setTreesList(mappedTrees);
+    } catch (error) {
+      notifications.toasts.addDanger("Failed to update trees list.");
+    }
+  };
+  
 
   return (
     <Router basename={basename}>
@@ -144,6 +170,8 @@ export const AdtViewerApp = ({
                 currentStateIndex={currentStateIndex}
                 setCurrentStateIndex={setCurrentStateIndex}
                 states={states}
+                refreshPoliciesList={refreshPoliciesList} 
+                refreshTreesList={refreshTreesList}
               />
             </EuiHeaderSectionItem>
           </EuiHeaderSection>
@@ -308,7 +336,12 @@ export const AdtViewerApp = ({
                         name: "Actions Manager",
                         content: (
                           <div style={{ padding: "16px" }}>
-                            <ActionsManager treeData={treeData} http={http} notifications={notifications} />
+                            <ActionsManager 
+                              treeData={treeData} 
+                              http={http} 
+                              notifications={notifications} 
+                              refreshPoliciesList={refreshPoliciesList} 
+                              refreshTreesList={refreshTreesList}/>
                           </div>
                         ),
                       },
@@ -354,12 +387,12 @@ export const AdtViewerApp = ({
                         name: "Policy Comparison",
                         content: (
                           <div>
-                            {/*<PolicyComparisonChart
+                            <PolicyComparisonChart
                               http={http}
                               notifications={notifications}
                               policiesList={policiesList}
                               treeData={treeData}
-                            />*/}
+                            />
                           </div>
                         ),
                       },

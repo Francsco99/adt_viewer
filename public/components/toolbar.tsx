@@ -25,6 +25,8 @@ interface ToolbarProps {
   states: { state_id: number }[]; // List of states
   http: CoreStart["http"];
   notifications: CoreStart["notifications"];
+  refreshPoliciesList: () => void;
+  refreshTreesList: () => void;
 }
 
 interface ClearNodesButtonProps {
@@ -71,6 +73,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   states,
   http,
   notifications,
+  refreshPoliciesList,
+  refreshTreesList,
 }) => {
   const {
     selectedStateID,
@@ -125,7 +129,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     if (response) {
       const { file_name, tree_data, policy_content } = response;
       // Save the JSON file returned by the server
-      await saveData(http, notifications, file_name, tree_data, policy_content);
+      await saveData(http, notifications, file_name, tree_data, policy_content,{
+        refreshPolicies: async () => refreshPoliciesList(),
+        refreshTrees: async() => refreshTreesList(),});
     }
     setIsUploading(false); // Nascondi lo spinner
   };
