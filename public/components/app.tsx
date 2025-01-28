@@ -112,8 +112,9 @@ export const AdtViewerApp = ({
     try {
       const res = await http.get(`/api/adt_viewer/load_policy/${policyId}`);
       setStates(res.states);
-      setSelectedPolicy(policiesList.find((policy) => policy.id === policyId) || null);
-      notifications.toasts.addSuccess(`Loaded policy with ID: ${policyId}`);
+      const currentPolicy = policiesList.find((policy) => policy.id === policyId) || null;
+      setSelectedPolicy(currentPolicy);
+      notifications.toasts.addSuccess(`Loaded policy: ${currentPolicy?.name}`);
     } catch (error) {
       notifications.toasts.addDanger(`Failed to load policy with ID: ${policyId}`);
     }
@@ -123,8 +124,9 @@ export const AdtViewerApp = ({
     try {
       const res = await http.get(`/api/adt_viewer/tree/${treeId}`);
       setTreeData(res.tree);
-      setSelectedTree(treesList.find((tree) => tree.id === treeId) || null);
-      notifications.toasts.addSuccess(`Loaded tree with ID: ${treeId}`);
+      const currentTree = treesList.find((tree) => tree.id === treeId) || null;
+      setSelectedTree(currentTree);
+      notifications.toasts.addSuccess(`Loaded tree: ${currentTree?.name}`);
     } catch (error) {
       notifications.toasts.addDanger(`Failed to load tree with ID: ${treeId}`);
     }
