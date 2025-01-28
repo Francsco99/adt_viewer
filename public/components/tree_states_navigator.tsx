@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { TreeVisualizer } from "./tree_visualizer";
 import { useTreeContext } from "./tree_context";
 import { EuiButtonIcon, EuiFlexGroup, EuiFlexItem, EuiModal, EuiModalBody, EuiModalHeader, EuiModalHeaderTitle, EuiOverlayMask, EuiText, EuiTitle, EuiToolTip } from "@elastic/eui";
 import { FallbackMessage } from "./fallback_messages";
-
-// Define the structure of a TreeState
-interface TreeState {
-  state_id: number; // Unique ID of the state
-  active_nodes: number[]; // Nodes active in this state
-  actions_id: number[]; // Actions associated with this state
-  nodes: number[]; // Nodes associated with this state
-}
 
 // Props for the TreeStateNavigator component
 interface TreeStateNavigatorProps {
@@ -18,15 +10,14 @@ interface TreeStateNavigatorProps {
     nodes: { id: number; label: string; name:string; role: string; type: string; hidden?: boolean; }[]; // Node data for the tree
     edges: { id_source: number; id_target: number }[]; // Edges data for the tree
   } | null;
-  states: TreeState[]; // Array of tree states
 }
 
 // Component for navigating and visualizing tree states
 export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
   treeData,
-  states,
 }) => {
   const { selectedStateID, defenderNodeColor, attackerNodeColor, fixedNodeBorderColor, activeNodeColor, selectedNodeColor, fixedNodeColor } = useTreeContext();
+  const svgRef = useRef<SVGSVGElement | null>(null); // Reference to the SVG element
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const closeModal = () => setIsModalVisible(false);
@@ -60,6 +51,32 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
       );
     }
 
+    // Function to download the SVG
+    const downloadSVG = () => {
+      if (!svgRef.current) return;
+
+      const svgElement = svgRef.current;
+
+      // Clone the SVG node
+      const clonedSVG = svgElement.cloneNode(true) as SVGSVGElement;
+
+      // Serialize the SVG content
+      const serializer = new XMLSerializer();
+      const svgContent = serializer.serializeToString(clonedSVG);
+
+      // Create a Blob for the SVG
+      const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
+
+      // Create a download link
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "tree_visualization.svg";
+      link.click();
+
+      // Clean up the URL object
+      URL.revokeObjectURL(link.href);
+    };
+
   return (
     <div>
       <EuiFlexGroup justifyContent="spaceBetween" alignItems="center">
@@ -76,7 +93,7 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
           </EuiTitle>
         </EuiFlexItem>
       </EuiFlexGroup>
-      {treeData && <TreeVisualizer data={treeData} />}
+      {treeData && <TreeVisualizer ref={svgRef} data={treeData} />}
       <EuiToolTip position="right" content="Show legend">
         <EuiButtonIcon
           iconType="questionInCircle"
@@ -84,6 +101,14 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
           aria-label="Show legend"
         />
       </EuiToolTip>
+
+      {/* Button to download the SVG */}
+      <EuiToolTip position="right" content="Download the current tree as SVG">
+        <EuiButtonIcon iconType="download" onClick={downloadSVG} style={{ marginLeft: "20px" }}>
+          Download SVG
+        </EuiButtonIcon>
+      </EuiToolTip>
+
       {isModalVisible && (
         <EuiOverlayMask>
           <EuiModal onClose={closeModal}>
@@ -210,7 +235,6 @@ export const TreeStateNavigator: React.FC<TreeStateNavigatorProps> = ({
                 </div>
               </EuiText>
             </EuiModalBody>
-
           </EuiModal>
         </EuiOverlayMask>
       )}

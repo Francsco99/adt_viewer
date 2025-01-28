@@ -143,7 +143,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     const file = files[0];
 
     closeModal();
-    
+
     await handleFileUploading(file);
   };
 
