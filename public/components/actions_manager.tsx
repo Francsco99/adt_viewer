@@ -184,7 +184,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   ];
 
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(3);
+  const [pageSize, setPageSize] = useState(4);
   const [sortField, setSortField] = useState<keyof TreeNode>("label");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -224,8 +224,9 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   };
 
   const displayedActions = showAllActions
-    ? actionNodes
-    : actionNodes.filter((node) => node.role === "Defender");
+  ? actionNodes.filter((node) => node.role === "Defender") // Mostra solo Defender
+  : actionNodes; // Mostra tutte le azioni
+
 
   const paginatedActions = getSortedItems(displayedActions).slice(
     pageIndex * pageSize,
@@ -262,7 +263,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
           pageIndex,
           pageSize,
           totalItemCount: displayedActions.length,
-          pageSizeOptions: [3, 10, 20],
+          pageSizeOptions: [4, 10, 20],
         }}
         sorting={{ sort: { field: sortField, direction: sortDirection } }}
         onChange={handleTableChange}
