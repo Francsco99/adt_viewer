@@ -95,13 +95,15 @@ export const AdtViewerApp = ({
   useEffect(() => {
     if (listsLoaded) {
       if (!selectedPolicy && policiesList.length > 0) {
-        const defaultPolicy = policiesList[0];
+        const last_policy = policiesList.length - 1;
+        const defaultPolicy = policiesList[last_policy];
         setSelectedPolicy(defaultPolicy);
         loadPolicy(defaultPolicy.id);
       }
   
       if (!selectedTree && treesList.length > 0) {
-        const defaultTree = treesList[0];
+        const last_tree = treesList.length - 1;
+        const defaultTree = treesList[last_tree];
         setSelectedTree(defaultTree);
         loadTree(defaultTree.id);
       }
@@ -122,7 +124,7 @@ export const AdtViewerApp = ({
   
   const loadTree = async (treeId: number) => {
     try {
-      const res = await http.get(`/api/adt_viewer/tree/${treeId}`);
+      const res = await http.get(`/api/adt_viewer/load_tree/${treeId}`);
       setTreeData(res.tree);
       const currentTree = treesList.find((tree) => tree.id === treeId) || null;
       setSelectedTree(currentTree);
