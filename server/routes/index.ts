@@ -15,7 +15,7 @@ export function defineRoutes(router: IRouter) {
     },
     async (context, request, response) => {
       try {
-        const flaskResponse = await fetch('http://database-server:5003/api/trees', {
+        const flaskResponse = await fetch('http://panacea-app:5003/api/trees', {
           method: 'GET',
         });
 
@@ -53,7 +53,7 @@ export function defineRoutes(router: IRouter) {
       const { treeId } = request.params;
 
       try {
-        const flaskResponse = await fetch(`http://database-server:5003/api/trees/${treeId}`, {
+        const flaskResponse = await fetch(`http://panacea-app:5003/api/trees/${treeId}`, {
           method: 'GET',
         });
 
@@ -100,7 +100,7 @@ export function defineRoutes(router: IRouter) {
 
       try {
         // Sends a POST request to the Flask server
-        const flaskResponse = await fetch('http://database-server:5003/api/trees', {
+        const flaskResponse = await fetch('http://panacea-app:5003/api/trees', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: fileName, content: treeData }),
@@ -138,7 +138,7 @@ export function defineRoutes(router: IRouter) {
     },
     async (context, request, response) => {
       try {
-        const flaskResponse = await fetch('http://database-server:5003/api/policies', {
+        const flaskResponse = await fetch('http://panacea-app:5003/api/policies', {
           method: 'GET',
         });
 
@@ -176,7 +176,7 @@ export function defineRoutes(router: IRouter) {
       const { policyId } = request.params;
 
       try {
-        const flaskResponse = await fetch(`http://database-server:5003/api/policies/${policyId}`, {
+        const flaskResponse = await fetch(`http://panacea-app:5003/api/policies/${policyId}`, {
           method: 'GET',
         });
 
@@ -223,7 +223,7 @@ export function defineRoutes(router: IRouter) {
 
       try {
         // Sends a POST request to the Flask server
-        const flaskResponse = await fetch('http://database-server:5003/api/policies', {
+        const flaskResponse = await fetch('http://panacea-app:5003/api/policies', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: fileName, content: policyData }),
