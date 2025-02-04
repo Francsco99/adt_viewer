@@ -53,13 +53,13 @@ export async function exportData(
  * @param http HTTP object from CoreStart.
  * @param notifications Notifications object from CoreStart.
  * @param file XML file to upload.
- * @returns A response containing `file_name`, `tree_data`, and `policy_content`.
+ * @returns A response containing `tree_json_id` and `policy_json_id`.
  */
 export async function uploadFile(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
   file: File
-): Promise<ExportResponse | null> {
+): Promise<{ tree_json_id: number; policy_json_id: number } | null> {
 
     const formData = new FormData();
     formData.append("file", file);
@@ -75,14 +75,16 @@ export async function uploadFile(
     if (
       !response ||
       typeof response !== "object" ||
-      !response.file_name ||
-      !response.tree_data ||
-      !response.policy_content
+      !response.tree_json_id ||
+      !response.policy_json_id
     ) {
       throw new Error("Invalid response from server: missing required fields.");
     }
 
-    return response;
+    return {
+      tree_json_id: response.tree_json_id,
+      policy_json_id: response.policy_json_id
+    };
   } catch (error) {
     console.error("Error during file upload:", error);
     notifications.toasts.addDanger(
@@ -94,43 +96,36 @@ export async function uploadFile(
   }
 }
 
+
 /**
- * Saves the data returned from the server (tree_data and policy_content) and updates the lists.
+ * Loads the tree data and policy content from the database using their IDs.
  * @param http HTTP object from CoreStart.
  * @param notifications Notifications object from CoreStart.
- * @param fileName Name of the saved file.
- * @param treeData Tree data returned by the server.
- * @param policyContent Policy content returned by the server.
+ * @param treeId ID of the tree JSON in the database.
+ * @param policyId ID of the policy JSON in the database.
  * @param refreshLists Optional functions to refresh policies and trees lists.
  */
-export async function saveData(
+export async function loadData(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
-  fileName: string,
-  treeData: object,
-  policyContent: object,
+  treeId: number,
+  policyId: number,
   refreshLists?: {
     refreshPolicies: () => Promise<void>;
     refreshTrees: () => Promise<void>;
   }
 ): Promise<void> {
   try {
-    const [savePolicyResponse, saveTreeResponse] = await Promise.all([
-      // Save the policy content
-      http.post(`/api/adt_viewer/save_policy/${fileName}`, {
-        body: JSON.stringify(policyContent),
-        headers: { "Content-Type": "application/json" },
-      }),
+    const [treeResponse, policyResponse] = await Promise.all([
+      // Fetch the tree data from the database
+      http.get(`/api/adt_viewer/load_tree/${treeId}`),
 
-      // Save the tree data
-      http.post(`/api/adt_viewer/save_tree/${fileName}`, {
-        body: JSON.stringify(treeData),
-        headers: { "Content-Type": "application/json" },
-      }),
+      // Fetch the policy content from the database
+      http.get(`/api/adt_viewer/load_policy/${policyId}`),
     ]);
 
-    console.log("Policy content saved:", savePolicyResponse);
-    console.log("Tree data saved:", saveTreeResponse);
+    console.log("Loaded tree data:", treeResponse);
+    console.log("Loaded policy content:", policyResponse);
 
     // Update the lists if refresh functions are provided
     if (refreshLists) {
@@ -142,15 +137,15 @@ export async function saveData(
 
     // Success notification
     notifications.toasts.addSuccess(
-      `File saved successfully as ${fileName} in server/data/trees and policies`
+      `Data loaded successfully for Tree ID: ${treeId} and Policy ID: ${policyId}`
     );
-  } catch (saveError) {
-    console.error("Error during save operations:", saveError);
+  } catch (loadError) {
+    console.error("Error during data load operations:", loadError);
 
     // Error notification
     notifications.toasts.addDanger(
-      `Error during save operations: ${
-        saveError instanceof Error ? saveError.message : "Unknown error"
+      `Error during data loading: ${
+        loadError instanceof Error ? loadError.message : "Unknown error"
       }`
     );
   }

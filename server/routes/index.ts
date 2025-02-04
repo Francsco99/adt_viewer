@@ -37,12 +37,12 @@ export function defineRoutes(router: IRouter) {
   );
 
   /**
-   * Route: /api/adt_viewer/tree/{treeId}
+   * Route: /api/adt_viewer/load_tree/{treeId}
    * Description: Fetches a specific tree by its ID from Flask.
    */
   router.get(
     {
-      path: '/api/adt_viewer/tree/{treeId}',
+      path: '/api/adt_viewer/load_tree/{treeId}',
       validate: {
         params: schema.object({
           treeId: schema.number(), // Tree ID as a number

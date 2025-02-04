@@ -17,7 +17,7 @@ import {
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
-import { saveData, uploadFile } from "./export_service";
+import { loadData, uploadFile } from "./export_service";
 
 interface ToolbarProps {
   currentStateIndex: number; // Current index of the state
@@ -115,26 +115,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   // Close modal
   const closeModal = () => setIsModalOpen(false);
 
-  // Handle file upload and save process
-  const handleFileUploading = async (file: File) => {
-    if (file.type !== "text/xml") {
-      notifications.toasts.addDanger("Only XML files are allowed.");
-      return;
-    }
+  // Handle file upload and load process
+const handleFileUploading = async (file: File) => {
+  if (file.type !== "text/xml") {
+    notifications.toasts.addDanger("Only XML files are allowed.");
+    return;
+  }
 
-    setIsUploading(true); // Mostra lo spinner
+  setIsUploading(true); // Mostra lo spinner
 
-    const response = await uploadFile(http, notifications, file);
+  const response = await uploadFile(http, notifications, file);
 
-    if (response) {
-      const { file_name, tree_data, policy_content } = response;
-      // Save the JSON file returned by the server
-      await saveData(http, notifications, file_name, tree_data, policy_content,{
-        refreshPolicies: async () => refreshPoliciesList(),
-        refreshTrees: async() => refreshTreesList(),});
-    }
-    setIsUploading(false); // Nascondi lo spinner
-  };
+  if (response) {
+    const { tree_json_id, policy_json_id } = response;
+    console.log(response);
+    // Carica i dati dal database invece di salvarli direttamente
+    await loadData(http, notifications, tree_json_id, policy_json_id, {
+      refreshPolicies: async () => refreshPoliciesList(),
+      refreshTrees: async () => refreshTreesList(),
+    });
+  }
+
+  setIsUploading(false); // Nascondi lo spinner
+};
+
 
   // Handle file selection
   const handleFileChange = async (files: FileList | null) => {
