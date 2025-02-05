@@ -21,7 +21,6 @@ import { loadData, uploadFile } from "./export_service";
 
 interface ToolbarProps {
   currentStateIndex: number; // Current index of the state
-  setCurrentStateIndex: React.Dispatch<React.SetStateAction<number>>; // Function to update the state index
   states: { state_id: number }[]; // List of states
   http: CoreStart["http"];
   notifications: CoreStart["notifications"];
@@ -69,7 +68,6 @@ ClearNodesButton.displayName = "ClearNodesButton";
 // Main toolbar component
 export const Toolbar: React.FC<ToolbarProps> = ({
   currentStateIndex,
-  setCurrentStateIndex,
   states,
   http,
   notifications,

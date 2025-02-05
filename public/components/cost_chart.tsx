@@ -10,7 +10,8 @@ import {
 } from "@elastic/charts";
 import "@elastic/charts/dist/theme_light.css";
 import { useTreeContext } from "./tree_context";
-import {FallbackMessage} from "./fallback_messages"
+import { FallbackMessage } from "./fallback_messages";
+import { EuiButtonIcon, EuiToolTip } from "@elastic/eui";
 
 interface StateData {
   state_id: number;
@@ -35,11 +36,21 @@ interface TreeData {
 interface CostChartProps {
   states: StateData[];
   treeData: TreeData | null;
+  currentStateIndex: number; // Current index of the state
 }
 
-export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
-  const { selectedStateID, defenderColor, attackerColor, totalColor } =
-    useTreeContext();
+export const CostChart: React.FC<CostChartProps> = ({
+  states,
+  treeData,
+  currentStateIndex,
+}) => {
+  const {
+    selectedStateID,
+    setSelectedStateID,
+    defenderColor,
+    attackerColor,
+    totalColor,
+  } = useTreeContext();
 
   const [data, setData] = useState<{
     attackerColored: { x: number; y: number }[];
@@ -126,24 +137,42 @@ export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
   }, [states, treeData, selectedStateID]);
 
   // Fallback message when treeData is unavailable
-    if (!data || !treeData) {
-      return (
-        <FallbackMessage 
-          title="Tree data not available"
-          message="Please load the tree data to visualize the states."
-        />
-      );
+  if (!data || !treeData) {
+    return (
+      <FallbackMessage
+        title="Tree data not available"
+        message="Please load the tree data to visualize the states."
+      />
+    );
+  }
+
+  // Fallback message when states is unavailable
+  if (!states || states.length === 0) {
+    return (
+      <FallbackMessage
+        title="States data not available"
+        message="Please load the policy data to visualize the states."
+      />
+    );
+  }
+
+  const currentIndex = states.findIndex(
+    (state) => state.state_id === selectedStateID
+  ); // Get index of current state
+
+  // Navigate to previous state
+  const goToPreviousState = () => {
+    if (currentIndex > 0) {
+      setSelectedStateID(states[currentIndex - 1].state_id);
     }
-  
-    // Fallback message when states is unavailable
-    if (!states || states.length === 0) {
-      return (
-        <FallbackMessage 
-          title="States data not available"
-          message="Please load the policy data to visualize the states."
-        />
-      );
+  };
+
+  // Navigate to next state
+  const goToNextState = () => {
+    if (currentIndex < states.length - 1) {
+      setSelectedStateID(states[currentIndex + 1].state_id);
     }
+  };
 
   return (
     <div style={{ height: "400px" }}>
@@ -301,6 +330,26 @@ export const CostChart: React.FC<CostChartProps> = ({ states, treeData }) => {
           title="Objective Function Value"
         />
       </Chart>
+
+      {/* Previous State */}
+      <EuiToolTip position="bottom" content="Go to previous state">
+        <EuiButtonIcon
+          iconType="framePrevious"
+          aria-label="Previous State"
+          isDisabled={currentIndex <= 0} // Disable if at the first state
+          onClick={goToPreviousState}
+        ></EuiButtonIcon>
+      </EuiToolTip>
+
+      {/* Next State */}
+      <EuiToolTip position="bottom" content="Go to next state">
+        <EuiButtonIcon
+          iconType="frameNext"
+          aria-label="Next State"
+          isDisabled={currentStateIndex >= states.length - 1} // Disable if at the last state
+          onClick={goToNextState}
+        ></EuiButtonIcon>
+      </EuiToolTip>
     </div>
   );
 };
