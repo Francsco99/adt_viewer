@@ -18,8 +18,8 @@ interface TreeContextType {
   setActiveNodes: (activeNodes: any[]) => void;
 
   // Policy and Tree names, passed from App.tsx
-  selectedPolicy: string | null; // Name of the selected policy
-  selectedTree: string | null; // Name of the selected tree
+  selectedPolicy: { id: number; name: string } | null;
+  selectedTree: { id: number; name: string } | null;
 
   //Colors
   palette: string[]; // Array of colors
@@ -41,8 +41,8 @@ const TreeContext = createContext<TreeContextType | undefined>(undefined);
 // Provider component to manage and supply global state
 export const TreeContextProvider: React.FC<{
   children: ReactNode;
-  selectedPolicy: string | null; // Passed down from App.tsx
-  selectedTree: string | null; // Passed down from App.tsx
+  selectedPolicy: { id: number; name: string } | null; // Passed down from App.tsx
+  selectedTree: { id: number; name: string } | null; // Passed down from App.tsx
 }> = ({ children, selectedPolicy, selectedTree }) => {
   const [states, setStates] = React.useState<any[]>([]);
   const [selectedNodesID, setSelectedNodesID] = React.useState<number[]>([]);
