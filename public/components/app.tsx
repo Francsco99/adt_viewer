@@ -163,7 +163,7 @@ export const AdtViewerApp = ({
 
   return (
     <Router basename={basename}>
-      <TreeContextProvider selectedPolicy={selectedPolicy?.name ?? null} selectedTree={selectedTree?.name ?? null}>
+      <TreeContextProvider selectedPolicy={selectedPolicy ?? null} selectedTree={selectedTree ?? null}>
         {/* Header */}
         <EuiHeader >
           <EuiHeaderSection grow={true}>

@@ -122,7 +122,7 @@ const handleFileUploading = async (file: File) => {
     return;
   }
 
-  setIsUploading(true); // Mostra lo spinner
+  setIsUploading(true); // Show spinner
 
   const response = await uploadFile(http, notifications, file);
 
@@ -136,7 +136,7 @@ const handleFileUploading = async (file: File) => {
     });
   }
 
-  setIsUploading(false); // Nascondi lo spinner
+  setIsUploading(false); // Hide spinner
 };
 
 

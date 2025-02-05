@@ -8,11 +8,12 @@ import {
   EuiSwitch,
   EuiButton,
   EuiLoadingSpinner,
+  EuiFieldText,
 } from "@elastic/eui";
 import { CoreStart } from "../../../../src/core/public";
 import { useTreeContext } from "./tree_context";
 import { FallbackMessage } from "./fallback_messages";
-import { exportData, saveData } from "./export_service";
+import { exportData, loadData } from "./export_service";
 
 interface TreeNode {
   id: number;
@@ -51,6 +52,7 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   const [flaggedActions, setFlaggedActions] = useState<string[]>([]);
   const [showAllActions, setShowAllActions] = useState(false);
   const [isUploading, setIsUploading] = useState(false); // Uploading state
+  const [fileName, setFileName] = useState(""); // Custom fileName for export
   
 
   useEffect(() => {
@@ -94,8 +96,13 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
   };
 
   const handleExport = async () => {
+    // Generate default name if fileName field is empty
+    const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, "");
+    const generatedFileName = fileName.trim() !== "" ? fileName : `export_${timestamp}`;
+
     const updatedTreeData = {
-      original_name: selectedTree,
+      file_name: generatedFileName,
+      tree_id: selectedTree?.id,
       tree: {
         nodes: treeData.nodes.map((node) => {
           if (node.type === "Action" && flaggedActions.includes(node.label)) {
@@ -110,14 +117,15 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
     setIsUploading(true); // Mostra lo spinner
   
     const response = await exportData(http, notifications, updatedTreeData);
-  
+    
     if (response) {
-      const { file_name, tree_data, policy_content } = response;
-      await saveData(http, notifications, file_name, tree_data, policy_content,{
-        refreshPolicies: async () => refreshPoliciesList(),
-        refreshTrees: async() => refreshTreesList(),});
-    }
-
+        const { tree_json_id, policy_json_id } = response;
+        console.log(response);
+        await loadData(http, notifications, tree_json_id, policy_json_id, {
+          refreshPolicies: async () => refreshPoliciesList(),
+          refreshTrees: async () => refreshTreesList(),
+        });
+      }
     setIsUploading(false); // Nascondi lo spinner
   };
 
@@ -271,6 +279,10 @@ export const ActionsManager: React.FC<ActionsManagerProps> = ({
       <EuiSpacer size="m" />
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <EuiButton onClick={handleExport}>Export configuration</EuiButton>
+        <EuiFieldText
+          placeholder="Enter file name"
+          value={fileName}
+          onChange={(e) => setFileName(e.target.value)}/>
         {isUploading && <EuiLoadingSpinner size="l" />}
       </div>
     </div>

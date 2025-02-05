@@ -1,9 +1,8 @@
 import { CoreStart } from "../../../../src/core/public";
 
 interface ExportResponse {
-  file_name: string;
-  tree_data: object;
-  policy_content: object;
+  tree_json_id: number;
+  policy_json_id: number;
 }
 
 /**
@@ -11,12 +10,12 @@ interface ExportResponse {
  * @param http HTTP object from CoreStart.
  * @param notifications Notifications object from CoreStart.
  * @param payload JSON object to send.
- * @returns A response containing `file_name`, `tree_data`, and `policy_content`.
+ * @returns A response containing `tree_json_id` and `policy_json_id`, or null if there's an error.
  */
 export async function exportData(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
-  payload: object // JSON only
+  payload: object
 ): Promise<ExportResponse | null> {
   try {
     const response = await http.post("http://localhost:5002/receive_json", {
@@ -26,27 +25,37 @@ export async function exportData(
       },
     });
 
+    // Controlla se la risposta contiene i dati richiesti
     if (
       !response ||
       typeof response !== "object" ||
-      !response.file_name ||
-      !response.tree_data ||
-      !response.policy_content
+      !("tree_json_id" in response) ||
+      !("policy_json_id" in response)
     ) {
-      throw new Error("Invalid response from server: missing required fields");
+      throw new Error("Invalid response from server: missing required fields.");
     }
 
-    return response;
+    notifications.toasts.addSuccess(
+      `Export successful! Tree JSON ID: ${response.tree_json_id}, Policy JSON ID: ${response.policy_json_id}`
+    );
+
+    return {
+      tree_json_id: response.tree_json_id,
+      policy_json_id: response.policy_json_id,
+    };
   } catch (error) {
     console.error("Error during export operation:", error);
+
     notifications.toasts.addDanger(
       `Error during export operation: ${
         error instanceof Error ? error.message : "Unknown error"
       }`
     );
+
     return null;
   }
 }
+
 
 /**
  * Uploads an XML file to the server.
@@ -59,7 +68,7 @@ export async function uploadFile(
   http: CoreStart["http"],
   notifications: CoreStart["notifications"],
   file: File
-): Promise<{ tree_json_id: number; policy_json_id: number } | null> {
+): Promise<ExportResponse | null> {
 
     const formData = new FormData();
     formData.append("file", file);
@@ -116,16 +125,6 @@ export async function loadData(
   }
 ): Promise<void> {
   try {
-    const [treeResponse, policyResponse] = await Promise.all([
-      // Fetch the tree data from the database
-      http.get(`/api/adt_viewer/load_tree/${treeId}`),
-
-      // Fetch the policy content from the database
-      http.get(`/api/adt_viewer/load_policy/${policyId}`),
-    ]);
-
-    console.log("Loaded tree data:", treeResponse);
-    console.log("Loaded policy content:", policyResponse);
 
     // Update the lists if refresh functions are provided
     if (refreshLists) {
