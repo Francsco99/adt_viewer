@@ -214,8 +214,32 @@ export const PolicyComparisonChart: React.FC<PolicyComparisonChartProps> = ({
               />
             ))}
 
-            <Axis id="bottom-axis" position={Position.Bottom} title="Time" showGridLines />
-            <Axis id="left-axis" position={Position.Left} title="Monetary Cost" showGridLines />
+            <Axis 
+            id="bottom-axis" 
+            position={Position.Bottom} 
+            title="Time" showGridLines
+            style={{
+              tickLabel: {
+                fontSize: 20, // Aumenta la dimensione delle etichette numeriche sugli assi
+              },
+              axisTitle: {
+                fontSize: 20, // Aumenta la dimensione del titolo dell'asse
+              },
+            }}
+            />
+            <Axis 
+            id="left-axis" 
+            position={Position.Left} 
+            title="Monetary Cost" showGridLines 
+            style={{
+              tickLabel: {
+                fontSize: 20, // Aumenta la dimensione delle etichette numeriche sugli assi
+              },
+              axisTitle: {
+                fontSize: 20, // Aumenta la dimensione del titolo dell'asse
+              },
+            }}
+            />
           </Chart>
         ) : (
           <p>No policies selected for display.</p>

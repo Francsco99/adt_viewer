@@ -323,12 +323,34 @@ export const CostChart: React.FC<CostChartProps> = ({
         />
 
         {/* Axes */}
-        <Axis id="bottom-axis" position={Position.Bottom} title="State" />
         <Axis
-          id="left-axis"
-          position={Position.Left}
-          title="Objective Function Value"
-        />
+  id="bottom-axis"
+  position={Position.Bottom}
+  title="State"
+  tickFormat={(d) => Math.floor(d).toString()} // Converte i valori in interi
+  style={{
+    tickLabel: {
+      fontSize: 20, // Aumenta la dimensione delle etichette numeriche sugli assi
+    },
+    axisTitle: {
+      fontSize: 20, // Aumenta la dimensione del titolo dell'asse
+    },
+  }}
+/>
+<Axis
+  id="left-axis"
+  position={Position.Left}
+  title="Objective Function Value"
+  style={{
+    tickLabel: {
+      fontSize: 14,
+    },
+    axisTitle: {
+      fontSize: 16,
+    },
+  }}
+/>
+
       </Chart>
 
       {/* Previous State */}
