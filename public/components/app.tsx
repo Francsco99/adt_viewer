@@ -172,7 +172,6 @@ export const AdtViewerApp = ({
                 http={http}
                 notifications={notifications}
                 currentStateIndex={currentStateIndex}
-                setCurrentStateIndex={setCurrentStateIndex}
                 states={states}
                 refreshPoliciesList={refreshPoliciesList} 
                 refreshTreesList={refreshTreesList}
@@ -382,7 +381,7 @@ export const AdtViewerApp = ({
                         name: "Cost Chart",
                         content: (
                           <div style={{ padding: "16px" }}>
-                            <CostChart states={states} treeData={treeData} />
+                            <CostChart states={states} treeData={treeData} currentStateIndex={currentStateIndex}/>
                           </div>
                         ),
                       },
@@ -406,7 +405,7 @@ export const AdtViewerApp = ({
                       name: "Cost Chart",
                       content: (
                         <div style={{ padding: "16px" }}>
-                          <CostChart states={states} treeData={treeData} />
+                          <CostChart states={states} treeData={treeData} currentStateIndex={currentStateIndex}/>
                         </div>
                       ),
                     }}
